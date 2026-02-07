@@ -5,7 +5,8 @@ import { Caveat } from 'next/font/google';
 import './globals.css';
 import { useStore } from '@/lib/store/useStore';
 import { initTelegramSDK, getTelegramUser, getTelegramTheme } from '@/lib/telegram/init';
-import { createOrUpdateUser } from '@/lib/api/users';
+import { getUserByTelegramId } from '@/lib/api/users';
+import Script from 'next/script';
 
 const caveat = Caveat({
   variable: '--font-handwritten',
@@ -29,17 +30,19 @@ export default function RootLayout({
       const telegramTheme = getTelegramTheme();
       setTheme(telegramTheme);
       
-      // Get and create/update user
+      // Get and sync user with backend
       const telegramUser = getTelegramUser();
       if (telegramUser) {
-        createOrUpdateUser({
-          telegram_id: telegramUser.id,
-          username: telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-          avatar_url: telegramUser.photo_url,
-        }).then((user) => {
-          setCurrentUser(user);
+        getUserByTelegramId(
+          telegramUser.id,
+          telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
+          telegramUser.photo_url
+        ).then((user) => {
+          if (user) {
+            setCurrentUser(user);
+          }
         }).catch((error) => {
-          console.error('Failed to create/update user:', error);
+          console.error('Failed to sync Telegram user in root:', error);
         });
       }
     }
@@ -60,6 +63,11 @@ export default function RootLayout({
         <title>Split The Bill</title>
         <meta name="description" content="Split bills easily with friends in Telegram" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        {/* Telegram WebApp SDK */}
+        <Script 
+          src="https://telegram.org/js/telegram-web-app.js" 
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={`${caveat.variable} antialiased`}>
         {children}

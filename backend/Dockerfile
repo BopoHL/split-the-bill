@@ -4,6 +4,11 @@ FROM python:3.11-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Set environment variables for UTF-8 encoding
+ENV PYTHONIOENCODING=utf-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file into the container
