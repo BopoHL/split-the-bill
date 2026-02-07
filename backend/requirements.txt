@@ -1,0 +1,10 @@
+psycopg2-binary
+python-dotenv
+fastapi
+uvicorn[standard]
+sqlmodel
+aiosqlite
+requests
+pytest
+httpx
+pytest-asyncio
