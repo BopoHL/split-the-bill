@@ -6,8 +6,15 @@ up:
 down:
 	docker compose down
 
+stop:
+	docker compose stop
+
+start:
+	docker compose start
+
 restart:
 	docker compose restart
+
 logs:
 	docker compose logs -f
 

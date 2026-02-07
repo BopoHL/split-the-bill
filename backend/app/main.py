@@ -39,8 +39,8 @@ app.add_middleware(
 
 
 # Include routers
-app.include_router(users.router)
-app.include_router(bills.router)
+app.include_router(users.router, prefix="/api")
+app.include_router(bills.router, prefix="/api")
 
 
 @app.get("/")
