@@ -78,13 +78,16 @@ export default function BillPage() {
   }
 
   // Determine view mode
-  // The user is a creator if their telegram_id matches the bill owner's
-  // Since we might not have the full user objects fully populated yet, we rely on logic:
-  // We need to fetch the owner user details or store current user telegram_id in a robust way.
-  // For now, assuming currentUser.id matches bill.owner_id is the check.
-  // Fallback to ID 1 in dev environment if currentUser is not set
-  const currentUserId = currentUser?.id || 1;
-  const isCreator = currentUserId === bill.owner_id;
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen notebook-page flex items-center justify-center flex-col gap-4">
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+        <p className="font-handwritten text-xl text-ink/60">Waiting for user session...</p>
+      </div>
+    );
+  }
+
+  const isCreator = currentUser.id === bill.owner_id;
 
   return (
     <div className="min-h-screen notebook-page pb-12">

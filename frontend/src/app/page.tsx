@@ -68,12 +68,13 @@ export default function HomePage() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const fetchBills = useCallback(async (page: number, tab: 'active' | 'closed', isInitial = false) => {
+    if (!currentUser) return;
+    
     try {
       if (isInitial) setLoading(true);
       else setLoadingMore(true);
 
-      const userId = currentUser?.id || 1;
-      const bills = await getUserBills(userId, page, PAGE_SIZE);
+      const bills = await getUserBills(currentUser.id, page, PAGE_SIZE);
       
       const filtered = bills.filter(b => tab === 'active' ? !b.is_closed : b.is_closed);
       const hasMore = bills.length === PAGE_SIZE;
@@ -192,7 +193,7 @@ export default function HomePage() {
       const newBill = await createBill({
         title: data.title,
         total_sum: data.total_sum,
-        owner_id: currentUser?.id || 1, // Fallback to 1 if not logged in
+        owner_id: currentUser!.id, 
         payment_details: data.payment_details,
         include_owner: data.include_creator,
       });
