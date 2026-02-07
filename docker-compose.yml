@@ -3,7 +3,7 @@ services:
     build: 
       context: ./backend
     env_file:
-      - ./backend/.env
+      - .env
     restart: always
     networks:
       - app-network
@@ -12,9 +12,9 @@ services:
     build:
       context: ./frontend
       args:
-        - NEXT_PUBLIC_API_URL=/api
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
     environment:
-      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
     restart: always
     depends_on:
       - backend
