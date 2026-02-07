@@ -245,7 +245,29 @@ export default function HomePage() {
             Split The Bill 💰
           </h1>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* User Profile */}
+            {currentUser && (
+              <div className="flex items-center gap-2 px-2 py-1 bg-paper-highlight border border-accent/20 rounded-full">
+                {currentUser.avatar_url ? (
+                  <img 
+                    src={currentUser.avatar_url} 
+                    alt={currentUser.username || ''} 
+                    className="w-8 h-8 rounded-full border border-ink/10"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center border border-ink/10">
+                    <span className="text-sm font-handwritten font-bold text-accent">
+                      {(currentUser.username || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <span className="hidden sm:block text-sm font-handwritten text-ink font-bold max-w-[100px] truncate">
+                  {currentUser.username}
+                </span>
+              </div>
+            )}
+
             {/* Dev User Switcher */}
             <DevUserSwitcher />
 
