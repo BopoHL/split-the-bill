@@ -95,13 +95,46 @@ export default function HomePage() {
     }
   }, [currentUser]);
 
+  // Telegram Auto-Sync Logic
+  useEffect(() => {
+    const syncUser = async () => {
+      if (typeof window === 'undefined') return;
+      
+      const { getTelegramUser } = await import('@/lib/telegram/init');
+      const { getUserByTelegramId } = await import('@/lib/api/users');
+      const tgUser = getTelegramUser();
+      
+      if (tgUser) {
+        try {
+          const syncedUser = await getUserByTelegramId(
+            tgUser.id,
+            tgUser.username || `${tgUser.first_name}${tgUser.last_name ? ' ' + tgUser.last_name : ''}`,
+            tgUser.photo_url
+          );
+          if (syncedUser) {
+            useStore.getState().setCurrentUser(syncedUser);
+          }
+        } catch (error) {
+          console.error('Failed to sync Telegram user:', error);
+        }
+      }
+    };
+
+    syncUser();
+  }, [currentUser?.id]); // Re-sync if id is missing or explicitly changed
+
   // Initial fetch on mount or user change
   useEffect(() => {
     const initFetch = async () => {
       try {
         setLoading(true);
-        const userId = currentUser?.id || 1;
-        const bills = await getUserBills(userId, 1, PAGE_SIZE);
+        // Don't fetch bills until we have a user (either from store or synced)
+        if (!currentUser) {
+          setLoading(false);
+          return;
+        }
+        
+        const bills = await getUserBills(currentUser.id, 1, PAGE_SIZE);
         
         setActiveBills(bills.filter(b => !b.is_closed));
         setClosedBills(bills.filter(b => b.is_closed));

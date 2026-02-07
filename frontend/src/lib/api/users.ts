@@ -18,17 +18,22 @@ export async function getUser(userId: number): Promise<User> {
 }
 
 /**
- * Get user by Telegram ID
+ * Get user by Telegram ID (creates/updates if not exists)
  */
-export async function getUserByTelegramId(telegramId: number): Promise<User | null> {
+export async function getUserByTelegramId(
+  telegramId: number, 
+  username?: string, 
+  avatarUrl?: string
+): Promise<User | null> {
   try {
-    // Backend doesn't have this endpoint yet, so we'll use create/update which returns existing user
     const response = await apiClient.post<User>('/users/', {
       telegram_id: telegramId,
+      username: username,
+      avatar_url: avatarUrl,
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching user by Telegram ID:', error);
+    console.error('Error fetching/syncing user by Telegram ID:', error);
     return null;
   }
 }
