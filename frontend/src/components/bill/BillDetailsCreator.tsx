@@ -11,6 +11,7 @@ import Input from '@/components/ui/Input';
 import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder } from '@/lib/api/bills';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface BillDetailsCreatorProps {
   bill: BillDetail;
@@ -19,6 +20,7 @@ interface BillDetailsCreatorProps {
 }
 
 export default function BillDetailsCreator({ bill, setBill, currentUser }: BillDetailsCreatorProps) {
+  const { t } = useTranslation();
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newParticipantName, setNewParticipantName] = useState('');
@@ -31,7 +33,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
 
   const handleSplitBetween = async (participantIds: number[]) => {
     if (participantIds.length === 0) {
-      alert('Select participants first!');
+      alert(t('bill.selectParticipantsAlert'));
       return;
     }
     
@@ -46,7 +48,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       });
     } catch (e) {
       console.error(e);
-      alert('Failed to split');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -60,17 +62,10 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       setLoading(true);
       const updatedParticipant = await assignAmount(bill.id, participantId, amount);
       
-      // Update local state
       const newParticipants = bill.participants.map(p => 
         p.id === participantId ? updatedParticipant : p
       );
       
-      // Calculate new unallocated amount (backend recalculates, but we can be optimistic)
-      // Actually, since we have the updated participant from backend, we just need the new total unallocated
-      // But the assignAmount returns just the participant. 
-      // Let's assume the user just wants the participant updated, and they will refresh or we can recalculate.
-      // Wait, the Bill interface has unallocated_amount. I should probably refetch or recalculate.
-      // For now, let's recalculate unallocated_amount based on the change.
       const oldParticipant = bill.participants.find(p => p.id === participantId);
       const diff = updatedParticipant.allocated_amount - (oldParticipant?.allocated_amount || 0);
       
@@ -85,17 +80,15 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       setAssignmentValue('');
     } catch (e) {
       console.error(e);
-      alert('Failed to assign amount');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleAssignmentInputChange = (val: string) => {
-    // Check if it's a valid number first or empty (allow dot and comma, max 2 decimals)
     if (val === '' || /^\d*[.,]?\d{0,2}$/.test(val)) {
       const amount = displayToAmount(val);
-      // Cap at unallocated_amount + current allocated
       const participant = bill.participants.find(p => p.id === assigningId);
       const currentAllocated = participant?.allocated_amount || 0;
       const maxPossible = bill.unallocated_sum + currentAllocated;
@@ -124,7 +117,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       setShowAddParticipant(false);
     } catch (e) {
       console.error(e);
-      alert('Failed to add participant');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -157,7 +150,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       setShowAddItem(false);
     } catch (e) {
       console.error(e);
-      alert('Failed to add item');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -173,30 +166,28 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       });
     } catch (e) {
       console.error(e);
-      alert('Failed to delete item');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Find my participation record
   const myParticipation = bill.participants.find(p => p.user_id === currentUser?.id);
 
   const handleMarkPaid = async () => {
     if (!myParticipation || !currentUser) return;
-    if (!confirm('Are you sure you have transferred the money? This cannot be undone.')) return;
+    if (!confirm(t('bill.confirmPaymentAlert'))) return;
 
     try {
       setLoading(true);
       const updatedParticipant = await updatePaymentStatus(bill.id, myParticipation.id, true, currentUser.id);
-      // Update local state with real value from backend
       const updatedParticipants = bill.participants.map(p => 
         p.id === updatedParticipant.id ? updatedParticipant : p
       );
       setBill({ ...bill, participants: updatedParticipants });
     } catch (e) {
       console.error(e);
-      alert('Failed to update status');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -205,21 +196,20 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
   const handleTogglePaymentStatus = async (participantId: number, currentPaid: boolean) => {
     if (!currentUser) return;
     
-    const actionText = currentPaid ? 'Cancel payment confirmation?' : 'Confirm payment?';
+    const actionText = currentPaid ? t('bill.cancelPaymentAlert') : t('bill.confirmPaymentAlert');
     if (!confirm(actionText)) return;
 
     try {
       setLoading(true);
       const updatedParticipant = await updatePaymentStatus(bill.id, participantId, !currentPaid, currentUser.id);
       
-      // Update local state with real value from backend
       const updatedParticipants = bill.participants.map(p => 
         p.id === updatedParticipant.id ? updatedParticipant : p
       );
       setBill({ ...bill, participants: updatedParticipants });
     } catch (e) {
       console.error(e);
-      alert('Failed to update status');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -227,7 +217,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
 
   const handleDeleteParticipant = async (participantId: number) => {
     if (!currentUser) return;
-    if (!confirm('Are you sure you want to remove this participant?')) return;
+    if (!confirm(t('bill.removeParticipantAlert'))) return;
     
     try {
       setLoading(true);
@@ -235,7 +225,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       setBill(updatedBill);
     } catch (e) {
       console.error(e);
-      alert('Failed to delete participant');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -261,9 +251,9 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       {/* Participants Section */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-lg font-handwritten text-ink">Participants ({bill.participants.length})</h2>
+          <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
           <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Add
+            <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
           </Button>
         </div>
 
@@ -294,14 +284,14 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                         <button
                           onClick={() => handleDeleteParticipant(p.id)}
                           className="p-1 text-ink/10 hover:text-red-500 transition-colors"
-                          title="Remove participant"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
                       )}
                     </div>
                     <p className="text-xs text-ink/50">
-                      {isOwner ? '👑 Owner' : p.is_paid ? 'Paid ✅' : 'Pending ⏳'}
+                      {isOwner ? `👑 ${t('bill.creatorRole')}` : p.is_paid ? `${t('bill.paidLabel')} ✅` : `${t('bill.statusActive')} ⏳`}
                     </p>
                   </div>
                   {isOwner ? (
@@ -312,7 +302,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                       }}
                       className="text-[10px] uppercase font-bold text-accent hover:underline"
                     >
-                      Assign
+                      {t('bill.assign')}
                     </button>
                   ) : (
                     <div className="flex flex-col items-end gap-1">
@@ -321,7 +311,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                           onClick={() => handleTogglePaymentStatus(p.id, true)}
                           className="text-[10px] uppercase font-bold text-red-500 hover:underline"
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </button>
                       ) : (
                         <>
@@ -330,7 +320,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                               onClick={() => handleTogglePaymentStatus(p.id, false)}
                               className="text-[10px] uppercase font-bold text-green-600 hover:underline"
                             >
-                              Confirm
+                              {t('common.confirm')}
                             </button>
                           )}
                           <button 
@@ -340,7 +330,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                             }}
                             className="text-[10px] uppercase font-bold text-accent hover:underline"
                           >
-                            Assign
+                            {t('bill.assign')}
                           </button>
                         </>
                       )}
@@ -394,7 +384,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                             handleAssignAmount(p.id);
                           }}
                           className="p-1 text-ink/20 hover:text-red-500 transition-colors"
-                          title="Reset amount"
+                          title={t('common.cancel')}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -418,7 +408,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
             <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center mb-1">
               <Plus className="w-4 h-4 text-ink/40" />
             </div>
-            <span className="text-xs text-ink/40 font-medium">Add Person</span>
+            <span className="text-xs text-ink/40 font-medium">{t('bill.addParticipant')}</span>
           </motion.div>
         </div>
       </div>
@@ -426,24 +416,24 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       {/* Items Section */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-lg font-handwritten text-ink">Items ({bill.items.length})</h2>
+          <h2 className="text-lg font-handwritten text-ink">{t('bill.items')} ({bill.items.length})</h2>
           <Button size="sm" variant="ghost" onClick={() => setShowAddItem(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Add
+            <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
           </Button>
         </div>
 
         <div className="space-y-2">
           {bill.items.length === 0 ? (
             <div className="text-center py-6 border-2 border-dashed border-ink/10 rounded-lg">
-              <p className="text-ink/40 text-sm">No items added yet</p>
+              <p className="text-ink/40 text-sm">{t('bill.noItemsAdded')}</p>
             </div>
           ) : (
             <>
               <div className="flex items-center px-3 py-1 text-[10px] uppercase font-bold text-ink/40 border-b border-ink/5 mb-1">
-                <div className="flex-[3] min-w-0">Item</div>
-                <div className="flex-1 text-center">Qty</div>
-                <div className="flex-[2] text-right px-1">Price</div>
-                <div className="flex-[2] text-right">Total</div>
+                <div className="flex-[3] min-w-0">{t('bill.itemName')}</div>
+                <div className="flex-1 text-center">{t('bill.quantity')}</div>
+                <div className="flex-[2] text-right px-1">{t('bill.price')}</div>
+                <div className="flex-[2] text-right">{t('common.total')}</div>
                 <div className="w-8"></div>
               </div>
               {bill.items.map((item) => (
@@ -484,19 +474,19 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       <Modal 
         isOpen={showAddParticipant} 
         onClose={() => setShowAddParticipant(false)}
-        title="Add Participant"
+        title={t('bill.addParticipant')}
         size="sm"
       >
         <div className="space-y-4">
           <Input 
-            label="Name" 
-            placeholder="Friend's Name" 
+            label={t('bill.guestName')} 
+            placeholder={t('bill.guestName')} 
             value={newParticipantName}
             onChange={(e) => setNewParticipantName(e.target.value)}
           />
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" onClick={() => setShowAddParticipant(false)}>Cancel</Button>
-            <Button onClick={handleAddParticipant} disabled={loading}>Add</Button>
+            <Button variant="ghost" onClick={() => setShowAddParticipant(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleAddParticipant} disabled={loading}>{t('common.add')}</Button>
           </div>
         </div>
       </Modal>
@@ -504,27 +494,27 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       <Modal
         isOpen={showAddItem}
         onClose={() => setShowAddItem(false)}
-        title="Add Item"
+        title={t('bill.addItem')}
         size="sm"
       >
         <div className="space-y-4">
           <Input 
-            label="Item Name" 
-            placeholder="Pizza"
+            label={t('bill.itemName')} 
+            placeholder={t('bill.itemName')}
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input 
-              label="Price" 
+              label={t('bill.price')} 
               type="text"
               inputMode="decimal"
-              placeholder="0.00"
+              placeholder="0"
               value={newItemPrice}
               onChange={(e) => handleItemPriceChange(e.target.value)}
             />
             <Input 
-              label="Count" 
+              label={t('bill.quantity')} 
               type="number"
               min="1"
               value={newItemCount}
@@ -532,8 +522,8 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
             />
           </div>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" onClick={() => setShowAddItem(false)}>Cancel</Button>
-            <Button onClick={handleAddItem} disabled={loading}>Add Item</Button>
+            <Button variant="ghost" onClick={() => setShowAddItem(false)}>{t('common.cancel')}</Button>
+            <Button onClick={handleAddItem} disabled={loading}>{t('bill.addItem')}</Button>
           </div>
         </div>
       </Modal>

@@ -14,7 +14,17 @@ interface YouShareBlockProps {
   hideAction?: boolean;
 }
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
+interface YouShareBlockProps {
+  myParticipation: BillParticipant;
+  onMarkPaid: () => void;
+  loading: boolean;
+  hideAction?: boolean;
+}
+
 export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hideAction }: YouShareBlockProps) {
+  const { t } = useTranslation();
   const isPaid = myParticipation.is_paid;
   const myAmount = myParticipation.allocated_amount;
   const [copied, setCopied] = useState(false);
@@ -36,7 +46,7 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
       `}>
         <div className="text-center relative z-10">
           <p className="text-sm font-medium uppercase tracking-wider mb-2 opacity-70">
-            {isPaid ? 'You Paid' : 'Your Share'}
+            {isPaid ? t('bill.youPaid') : t('bill.yourShare')}
           </p>
           
           <div className="flex items-center justify-center gap-2 group">
@@ -48,7 +58,7 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
               <button
                 onClick={handleCopyAmount}
                 className="p-2 rounded-full hover:bg-accent/5 transition-colors group-active:scale-90"
-                title="Copy amount"
+                title={t('common.copy')}
               >
                 {copied ? (
                   <Check className="w-5 h-5 text-green-500" />
@@ -66,7 +76,7 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
                 animate={{ scale: 1, opacity: 1 }}
                 className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-green-200/50 text-green-800 rounded-full text-sm font-medium"
               >
-                <Check className="w-4 h-4" /> Paid
+                <Check className="w-4 h-4" /> {t('bill.paidLabel')}
               </motion.div>
             )}
           </AnimatePresence>
@@ -83,10 +93,10 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
             onClick={onMarkPaid}
             disabled={loading}
           >
-            I Paid {formatCurrency(myAmount)}
+            {t('bill.iPaid', { amount: formatCurrency(myAmount) })}
           </Button>
           <p className="text-center text-xs text-ink/40 mt-3 px-4">
-            Click this only after you have transferred the money.
+            {t('bill.clickAfterTransfer')}
           </p>
         </motion.div>
       )}

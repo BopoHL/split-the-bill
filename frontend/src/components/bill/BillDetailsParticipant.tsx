@@ -1,13 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { BillDetail, User } from '@/types/api';
 import { formatCurrency } from '@/lib/utils/currency';
 import Button from '@/components/ui/Button';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { updatePaymentStatus } from '@/lib/api/bills';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface BillDetailsParticipantProps {
   bill: BillDetail;
@@ -16,27 +17,25 @@ interface BillDetailsParticipantProps {
 }
 
 export default function BillDetailsParticipant({ bill, currentUser, setBill }: BillDetailsParticipantProps) {
+  const { t } = useTranslation();
   // Find my participation record
-  // Logic: either by user_id or stored session guest id
-  // For now, let's assume if there's a currentUser, we look for it
   const myParticipation = bill.participants.find(p => p.user_id === currentUser?.id);
   const [loading, setLoading] = useState(false);
 
   const handleMarkPaid = async () => {
     if (!myParticipation || !currentUser) return;
-    if (!confirm('Are you sure you have transferred the money? This cannot be undone.')) return;
+    if (!confirm(t('bill.confirmPaymentAlert'))) return;
 
     try {
       setLoading(true);
       const updatedParticipant = await updatePaymentStatus(bill.id, myParticipation.id, true, currentUser.id);
-      // Update local state with real value from backend
       const updatedParticipants = bill.participants.map(p => 
         p.id === updatedParticipant.id ? updatedParticipant : p
       );
       setBill({ ...bill, participants: updatedParticipants });
     } catch (e) {
       console.error(e);
-      alert('Failed to update status');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -45,9 +44,8 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
   if (!myParticipation) {
     return (
       <div className="text-center py-10">
-        <p className="text-ink/60 mb-4">You are not a participant in this bill.</p>
-        <Button>Join Bill</Button> 
-        {/* Helper logic needed to join */}
+        <p className="text-ink/60 mb-4">{t('bill.notParticipant')}</p>
+        <Button>{t('bill.joinBill')}</Button> 
       </div>
     );
   }
@@ -65,7 +63,7 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
       {/* Participants Section */}
       <div>
         <div className="mb-3 px-1">
-          <h2 className="text-lg font-handwritten text-ink">Participants ({bill.participants.length})</h2>
+          <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -91,7 +89,7 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
                       {p.guest_name || `User #${p.user_id}`}
                     </p>
                     <p className="text-xs text-ink/50">
-                      {isOwner ? '👑 Owner' : p.is_paid ? 'Paid ✅' : 'Pending ⏳'}
+                      {isOwner ? `👑 ${t('bill.creatorRole')}` : p.is_paid ? `${t('bill.paidLabel')} ✅` : `${t('bill.statusActive')} ⏳`}
                     </p>
                   </div>
                 </div>
@@ -110,21 +108,21 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
       {/* Items Section */}
       <div>
         <div className="mb-3 px-1">
-          <h2 className="text-lg font-handwritten text-ink">Items ({bill.items.length})</h2>
+          <h2 className="text-lg font-handwritten text-ink">{t('bill.items')} ({bill.items.length})</h2>
         </div>
 
         <div className="space-y-2">
           {bill.items.length === 0 ? (
             <div className="text-center py-6 border-2 border-dashed border-ink/10 rounded-lg">
-              <p className="text-ink/40 text-sm">No items added yet</p>
+              <p className="text-ink/40 text-sm">{t('bill.noItemsAdded')}</p>
             </div>
           ) : (
             <>
               <div className="flex items-center px-3 py-1 text-[10px] uppercase font-bold text-ink/40 border-b border-ink/5 mb-1">
-                <div className="flex-[3] min-w-0">Item</div>
-                <div className="flex-1 text-center">Qty</div>
-                <div className="flex-[2] text-right px-1">Price</div>
-                <div className="flex-[2] text-right">Total</div>
+                <div className="flex-[3] min-w-0">{t('bill.itemName')}</div>
+                <div className="flex-1 text-center">{t('bill.quantity')}</div>
+                <div className="flex-[2] text-right px-1">{t('bill.price')}</div>
+                <div className="flex-[2] text-right">{t('common.total')}</div>
               </div>
               {bill.items.map((item) => (
                 <div 

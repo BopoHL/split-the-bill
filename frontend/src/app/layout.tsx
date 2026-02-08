@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Caveat } from 'next/font/google';
 import './globals.css';
 import { useStore } from '@/lib/store/useStore';
-import { initTelegramSDK, getTelegramUser, getTelegramTheme } from '@/lib/telegram/init';
+import { initTelegramSDK, getTelegramUser, getTelegramTheme, isTelegramWebApp } from '@/lib/telegram/init';
 import { getUserByTelegramId } from '@/lib/api/users';
 import Script from 'next/script';
+import ExternalLanding from '@/components/ui/ExternalLanding';
 
 const caveat = Caveat({
   variable: '--font-handwritten',
@@ -19,31 +20,38 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme, setTheme, setCurrentUser } = useStore();
+  const { theme, setTheme, setCurrentUser, language } = useStore();
+  const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Initialize Telegram SDK
-    const webApp = initTelegramSDK();
-    
-    if (webApp) {
-      // Set theme from Telegram
-      const telegramTheme = getTelegramTheme();
-      setTheme(telegramTheme);
+    // Check if running in Telegram
+    const isTG = isTelegramWebApp();
+    setIsTelegram(isTG);
+
+    if (isTG) {
+      // Initialize Telegram SDK
+      const webApp = initTelegramSDK();
       
-      // Get and sync user with backend
-      const telegramUser = getTelegramUser();
-      if (telegramUser) {
-        getUserByTelegramId(
-          telegramUser.id,
-          telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-          telegramUser.photo_url
-        ).then((user) => {
-          if (user) {
-            setCurrentUser(user);
-          }
-        }).catch((error) => {
-          console.error('Failed to sync Telegram user in root:', error);
-        });
+      if (webApp) {
+        // Set theme from Telegram
+        const telegramTheme = getTelegramTheme();
+        setTheme(telegramTheme);
+        
+        // Get and sync user with backend
+        const telegramUser = getTelegramUser();
+        if (telegramUser) {
+          getUserByTelegramId(
+            telegramUser.id,
+            telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
+            telegramUser.photo_url
+          ).then((user) => {
+            if (user) {
+              setCurrentUser(user);
+            }
+          }).catch((error) => {
+            console.error('Failed to sync Telegram user in root:', error);
+          });
+        }
       }
     }
   }, [setTheme, setCurrentUser]);
@@ -57,11 +65,15 @@ export default function RootLayout({
     }
   }, [theme]);
 
+  // Use translations for head metadata
+  const title = language === 'ru' ? 'Разделяй Счет' : language === 'uz' ? 'Hisobni Bo\'lish' : 'Split The Bill';
+  const description = language === 'ru' ? 'Легко делите счета с друзьями в Telegram' : language === 'uz' ? 'Telegram-da do\'stlar bilan hisob-kitoblarni osongina bo\'lishing' : 'Split bills easily with friends in Telegram';
+
   return (
-    <html lang="en" className={theme}>
+    <html lang={language} className={theme}>
       <head>
-        <title>Split The Bill</title>
-        <meta name="description" content="Split bills easily with friends in Telegram" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         {/* Telegram WebApp SDK */}
         <Script 
@@ -70,7 +82,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${caveat.variable} antialiased`}>
-        {children}
+        {isTelegram === false ? (
+          <ExternalLanding />
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 services:
   backend:
-    build: 
+    build:
       context: ./backend
     env_file:
       - .env
@@ -34,14 +34,15 @@ services:
     networks:
       - app-network
 
-  ngrok:
-    image: ngrok/ngrok:latest
+  cloudflared:
+    image: cloudflare/cloudflared:latest
     restart: always
     environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     command:
-      - http
-      - nginx:80
+      - tunnel
+      - --no-autoupdate
+      - run
     depends_on:
       - nginx
     networks:

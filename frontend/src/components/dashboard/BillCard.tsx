@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/utils/currency';
 import type { Bill } from '@/types/api';
 import { useRouter } from 'next/navigation';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 interface BillCardProps {
   bill: Bill;
   role: 'creator' | 'participant';
@@ -13,6 +15,7 @@ interface BillCardProps {
 
 export default function BillCard({ bill, role }: BillCardProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleClick = () => {
     router.push(`/bill/${bill.id}`);
@@ -44,7 +47,10 @@ export default function BillCard({ bill, role }: BillCardProps) {
           : 'bg-paper-highlight text-ink border border-accent/30'
         }
       `}>
-        {role === 'creator' ? '👑 Creator' : '👤 Guest'}
+        {role === 'creator' 
+          ? `👑 ${t('bill.creatorRole')}` 
+          : `👤 ${t('bill.guestRole')}`
+        }
       </div>
 
       <div className="flex justify-between items-start mb-2">
@@ -62,7 +68,7 @@ export default function BillCard({ bill, role }: BillCardProps) {
           </p>
           {bill.unallocated_sum > 0 && !bill.is_closed && (
             <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
-              {formatCurrency(bill.unallocated_sum)} left
+              {t('bill.left', { amount: formatCurrency(bill.unallocated_sum) })}
             </p>
           )}
         </div>
@@ -81,12 +87,12 @@ export default function BillCard({ bill, role }: BillCardProps) {
             {isPaid ? (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Closed</span>
+                <span>{t('bill.statusClosed')}</span>
               </>
             ) : (
               <>
                 <Clock className="w-4 h-4" />
-                <span>Active</span>
+                <span>{t('bill.statusActive')}</span>
               </>
             )}
           </div>

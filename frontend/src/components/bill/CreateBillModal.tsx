@@ -11,6 +11,8 @@ import { displayToAmount } from '@/lib/utils/currency';
 
 type BillCreateInput = z.input<typeof billCreateSchema>;
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 interface CreateBillModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,6 +20,7 @@ interface CreateBillModalProps {
 }
 
 export default function CreateBillModal({ isOpen, onClose, onSubmit }: CreateBillModalProps) {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -34,21 +37,21 @@ export default function CreateBillModal({ isOpen, onClose, onSubmit }: CreateBil
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Create New Bill" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('bill.createTitle')} size="sm">
       <form onSubmit={handleSubmit(handleFinalSubmit)} className="space-y-4">
         <Input
-          label="Bill Title"
-          placeholder="Dinner at Restaurant"
+          label={t('bill.billTitle')}
+          placeholder={t('bill.billTitle')}
           handwritten
           {...register('title')}
           error={errors.title?.message}
         />
         
         <Input
-          label="Total Amount"
+          label={t('bill.totalAmount')}
           type="text"
           inputMode="decimal"
-          placeholder="100000"
+          placeholder="0"
           {...register('total_sum', {
             setValueAs: (v) => displayToAmount(v),
           })}
@@ -56,8 +59,8 @@ export default function CreateBillModal({ isOpen, onClose, onSubmit }: CreateBil
         />
         
         <Input
-          label="Payment Details (Card number, phone, etc.)"
-          placeholder="+998 90 1234567"
+          label={t('bill.paymentDetails')}
+          placeholder={t('bill.paymentDetails')}
           {...register('payment_details')}
           error={errors.payment_details?.message}
         />
@@ -68,15 +71,15 @@ export default function CreateBillModal({ isOpen, onClose, onSubmit }: CreateBil
             {...register('include_creator')}
             className="w-5 h-5 rounded border-2 border-accent text-accent focus:ring-accent"
           />
-          <span className="text-ink">Include me as a participant</span>
+          <span className="text-ink">{t('bill.includeMe')}</span>
         </label>
         
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            Create Bill
+            {t('bill.createBill')}
           </Button>
         </div>
       </form>

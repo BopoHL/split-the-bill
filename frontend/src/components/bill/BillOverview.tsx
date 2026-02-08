@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/utils/currency';
 import { Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface BillOverviewProps {
   bill: BillDetail;
@@ -13,6 +14,7 @@ interface BillOverviewProps {
 }
 
 export default function BillOverview({ bill, onSplitBetween, loading }: BillOverviewProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [showSelection, setShowSelection] = useState(false);
   
@@ -56,18 +58,18 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent/5 rounded-full -ml-6 -mb-6" />
       
       <div className="relative z-10 text-center">
-        <p className="text-ink/60 uppercase tracking-widest text-xs font-bold mb-1">Total Bill</p>
+        <p className="text-ink/60 uppercase tracking-widest text-xs font-bold mb-1">{t('bill.totalBill')}</p>
         <div className="text-4xl font-bold text-accent font-handwritten">
           {formatCurrency(totalAmount)}
         </div>
         
         <div className="mt-4 flex justify-center gap-6 text-sm">
           <div>
-            <p className="text-ink/50 text-xs text-ink/70">Items Total</p>
+            <p className="text-ink/50 text-xs text-ink/70">{t('bill.itemsTotal')}</p>
             <p className="font-medium text-ink">{formatCurrency(itemsTotal)}</p>
           </div>
           <div>
-            <p className="text-ink/50 text-xs text-red-500">Unallocated</p>
+            <p className="text-ink/50 text-xs text-red-500">{t('bill.unallocated')}</p>
             <p className="font-medium text-red-500">{formatCurrency(remainingTotal)}</p>
           </div>
         </div>
@@ -75,7 +77,7 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
         {/* Card Number / Payment Details */}
         {bill.payment_details && (
           <div className="mt-6 flex flex-col items-center">
-            <p className="text-[10px] font-bold uppercase text-ink/40 mb-1">Payment Card</p>
+            <p className="text-[10px] font-bold uppercase text-ink/40 mb-1">{t('bill.paymentCard')}</p>
             <div 
               className="flex items-center gap-2 bg-accent/5 px-4 py-2 rounded-full border border-accent/10 group active:scale-95 transition-transform cursor-pointer" 
               onClick={handleCopyPayment}
@@ -99,7 +101,7 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
                   disabled={loading || selectedIds.size === 0 || remainingTotal === 0}
                   className="flex-1 px-4 py-2.5 text-xs font-bold text-accent hover:bg-accent/5 disabled:opacity-50 disabled:bg-white transition-colors border-r border-accent/30"
                 >
-                  Split Equally Between {selectedIds.size} people
+                  {t('bill.splitEqually', { count: selectedIds.size.toString() })}
                 </button>
                 <button
                   onClick={handleToggleSelection}
@@ -139,7 +141,7 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
                           />
                           <span className="text-[11px] font-medium text-ink truncate">
                             {p.guest_name || `User #${p.user_id}`}
-                            {p.is_paid && ' (Paid)'}
+                            {p.is_paid && ` ${t('bill.paidLabel')}`}
                           </span>
                         </label>
                       ))}
