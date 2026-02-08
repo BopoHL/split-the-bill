@@ -1,13 +1,13 @@
-'use client';
-
 import { formatCurrency } from '@/lib/utils/currency';
 import Button from '@/components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Copy } from 'lucide-react';
 import { BillParticipant } from '@/types/api';
 import { useState } from 'react';
+import { sendReaction } from '@/lib/api/bills';
 
 interface YouShareBlockProps {
+  billId: number;
   myParticipation: BillParticipant;
   onMarkPaid: () => void;
   loading: boolean;
@@ -16,24 +16,36 @@ interface YouShareBlockProps {
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
-interface YouShareBlockProps {
-  myParticipation: BillParticipant;
-  onMarkPaid: () => void;
-  loading: boolean;
-  hideAction?: boolean;
-}
-
-export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hideAction }: YouShareBlockProps) {
+export default function YouShareBlock({ billId, myParticipation, onMarkPaid, loading, hideAction }: YouShareBlockProps) {
   const { t } = useTranslation();
   const isPaid = myParticipation.is_paid;
   const myAmount = myParticipation.allocated_amount;
   const [copied, setCopied] = useState(false);
+  const [sendingReaction, setSendingReaction] = useState<string | null>(null);
 
   const handleCopyAmount = () => {
     navigator.clipboard.writeText(myAmount.toString());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleEmojiClick = async (emoji: string) => {
+    if (!myParticipation.user_id) return;
+    try {
+      setSendingReaction(emoji);
+      await sendReaction(billId, myParticipation.user_id, emoji);
+      setTimeout(() => setSendingReaction(null), 500);
+    } catch (e) {
+      console.error('Failed to send reaction:', e);
+      setSendingReaction(null);
+    }
+  };
+
+  const reactions = [
+    { emoji: '😊', label: 'Smiling' },
+    { emoji: '😎', label: 'Cool' },
+    { emoji: '😱', label: 'Shocked' }
+  ];
 
   return (
     <div className="space-y-4">
@@ -67,6 +79,20 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
                 )}
               </button>
             )}
+          </div>
+          
+          <div className="flex justify-center gap-4 mt-4">
+            {reactions.map(({ emoji }) => (
+              <motion.button
+                key={emoji}
+                whileTap={{ scale: 1.5 }}
+                onClick={() => handleEmojiClick(emoji)}
+                className="text-2xl hover:bg-paper-highlight p-2 rounded-full transition-colors active:scale-125"
+                disabled={sendingReaction === emoji}
+              >
+                {emoji}
+              </motion.button>
+            ))}
           </div>
           
           <AnimatePresence>

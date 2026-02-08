@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 
-export function useBillEvents(billId: number | undefined, onRefresh: () => void) {
+export function useBillEvents(
+  billId: number | undefined, 
+  onRefresh: () => void,
+  onReaction?: (userId: number, emoji: string) => void
+) {
   useEffect(() => {
     if (!billId) return;
 
@@ -12,8 +16,17 @@ export function useBillEvents(billId: number | undefined, onRefresh: () => void)
 
     eventSource.onmessage = (event) => {
       console.log('SSE message received:', event.data);
-      if (event.data === 'REFRESH') {
+      const data = event.data as string;
+      
+      if (data === 'REFRESH') {
         onRefresh();
+      } else if (data.startsWith('REACTION:')) {
+        const parts = data.split(':');
+        if (parts.length === 3 && onReaction) {
+          const userId = parseInt(parts[1]);
+          const emoji = parts[2];
+          onReaction(userId, emoji);
+        }
       }
     };
 
@@ -26,5 +39,5 @@ export function useBillEvents(billId: number | undefined, onRefresh: () => void)
       console.log(`Closing SSE: ${sseUrl}`);
       eventSource.close();
     };
-  }, [billId, onRefresh]);
+  }, [billId, onRefresh, onReaction]);
 }

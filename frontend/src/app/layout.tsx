@@ -106,7 +106,7 @@ export default function RootLayout({
           <div className="min-h-screen notebook-page flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
           </div>
-        ) : isTelegram === false ? (
+        ) : (isTelegram === false && !useStore.getState().currentUser) ? (
           <ExternalLanding />
         ) : (
           children

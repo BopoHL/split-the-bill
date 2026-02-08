@@ -22,6 +22,19 @@ export default function BillPage() {
   const [bill, setBill] = useState<BillDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeReactions, setActiveReactions] = useState<Record<number, string>>({});
+
+  const handleReaction = useCallback((userId: number, emoji: string) => {
+    setActiveReactions(prev => ({ ...prev, [userId]: emoji }));
+    // Clear the reaction after 3 seconds
+    setTimeout(() => {
+      setActiveReactions(prev => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+    }, 3000);
+  }, []);
 
   useEffect(() => {
     // Show Telegram back button
@@ -57,7 +70,7 @@ export default function BillPage() {
   }, [fetchBill]);
 
   // Subscribe to real-time events
-  useBillEvents(bill?.id, fetchBill);
+  useBillEvents(bill?.id, fetchBill, handleReaction);
 
   if (loading) {
     return (
@@ -130,13 +143,15 @@ export default function BillPage() {
             <BillDetailsCreator 
               bill={bill} 
               setBill={setBill} 
-              currentUser={currentUser || { id: 1, telegram_id: 123456, username: 'Dev User', avatar_url: null }} 
+              currentUser={currentUser}
+              reactions={activeReactions}
             />
           ) : (
             <BillDetailsParticipant 
               bill={bill} 
-              currentUser={currentUser || { id: 1, telegram_id: 123456, username: 'Dev User', avatar_url: null }} 
+              currentUser={currentUser}
               setBill={setBill} 
+              reactions={activeReactions}
             />
           )}
         </motion.div>

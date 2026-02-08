@@ -86,3 +86,8 @@ class BillDetailResponse(BaseModel):
     created_at: datetime
     items: list[BillItemResponse]
     participants: list[BillParticipantResponse]
+
+class ReactionCreate(BaseModel):
+    """Schema for creating a reaction"""
+    user_id: int
+    emoji: str

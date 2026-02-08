@@ -4,24 +4,25 @@ import { useState } from 'react';
 import { BillDetail, SplitType, User } from '@/types/api';
 import { formatCurrency, displayToAmount } from '@/lib/utils/currency';
 import Button from '@/components/ui/Button';
-import { Plus, Check, X, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Check, X, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink } from '@/lib/api/bills';
+import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink, sendReaction } from '@/lib/api/bills';
 import { shareLink } from '@/lib/telegram/init';
-import { Users } from 'lucide-react';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
+import ParticipantCard from './ParticipantCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface BillDetailsCreatorProps {
   bill: BillDetail;
   setBill: (bill: BillDetail) => void;
   currentUser: User | null;
+  reactions?: Record<number, string>;
 }
 
-export default function BillDetailsCreator({ bill, setBill, currentUser }: BillDetailsCreatorProps) {
+export default function BillDetailsCreator({ bill, setBill, currentUser, reactions = {} }: BillDetailsCreatorProps) {
   const { t } = useTranslation();
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -245,6 +246,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
 
       {myParticipation && (
         <YouShareBlock 
+          billId={bill.id}
           myParticipation={myParticipation} 
           onMarkPaid={handleMarkPaid} 
           loading={loading} 
@@ -275,156 +277,21 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {bill.participants.map((p) => {
-            const isOwner = p.user_id === bill.owner_id;
-            return (
-              <motion.div
-                key={p.id}
-                layout
-                className={`
-                  p-3 rounded-lg border-2 
-                  ${isOwner 
-                    ? 'border-accent/40 bg-accent/5' 
-                    : p.is_paid 
-                      ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800' 
-                      : 'bg-paper border-ink/10'
-                  }
-                `}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <div className="w-7 h-7 rounded-full overflow-hidden border border-ink/10 flex-shrink-0 bg-accent/20">
-                        {p.avatar_url ? (
-                          <img src={p.avatar_url} alt={p.username || ''} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-paper-highlight text-[10px] font-bold text-accent">
-                            {(p.username || p.guest_name || 'U').charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <p className="font-medium text-ink truncate text-sm">
-                        {p.username || p.guest_name || `User #${p.user_id}`}
-                      </p>
-                      {!isOwner && (
-                        <button
-                          onClick={() => handleDeleteParticipant(p.id)}
-                          className="p-1 text-ink/10 hover:text-red-500 transition-colors"
-                          title={t('common.delete')}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-ink/50">
-                      {isOwner ? `👑 ${t('bill.creatorRole')}` : p.is_paid ? `${t('bill.paidLabel')} ✅` : `${t('bill.statusActive')} ⏳`}
-                    </p>
-                  </div>
-                  {isOwner ? (
-                    <button 
-                      onClick={() => {
-                        setAssigningId(p.id);
-                        setAssignmentValue(p.allocated_amount.toString());
-                      }}
-                      className="text-[10px] uppercase font-bold text-accent hover:underline"
-                    >
-                      {t('bill.assign')}
-                    </button>
-                  ) : (
-                    <div className="flex flex-col items-end gap-1">
-                      {p.is_paid ? (
-                        <button 
-                          onClick={() => handleTogglePaymentStatus(p.id, true)}
-                          className="text-[10px] uppercase font-bold text-red-500 hover:underline"
-                        >
-                          {t('common.cancel')}
-                        </button>
-                      ) : (
-                        <>
-                          {!p.user_id && (
-                            <button 
-                              onClick={() => handleTogglePaymentStatus(p.id, false)}
-                              className="text-[10px] uppercase font-bold text-green-600 hover:underline"
-                            >
-                              {t('common.confirm')}
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => {
-                              setAssigningId(p.id);
-                              setAssignmentValue(p.allocated_amount.toString());
-                            }}
-                            className="text-[10px] uppercase font-bold text-accent hover:underline"
-                          >
-                            {t('bill.assign')}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              
-              <div className="relative h-8 flex items-center justify-end overflow-hidden">
-                <AnimatePresence mode="wait">
-                  {assigningId === p.id ? (
-                    <motion.div
-                      key="assign-input"
-                      initial={{ x: 50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: 50, opacity: 0 }}
-                      className="absolute inset-0 flex items-center gap-1 bg-paper pl-1"
-                    >
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={assignmentValue}
-                        onChange={(e) => handleAssignmentInputChange(e.target.value)}
-                        className="w-full text-right font-mono text-sm border-b border-accent focus:outline-none bg-transparent"
-                        autoFocus
-                      />
-                      <button 
-                        onClick={() => handleAssignAmount(p.id)}
-                        className="p-1 text-green-600 hover:bg-green-50 rounded"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => setAssigningId(null)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="amount-display"
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: -20, opacity: 0 }}
-                      className="flex items-center gap-2"
-                    >
-                      {!p.is_paid && p.allocated_amount > 0 && (
-                        <button
-                          onClick={() => {
-                            setAssignmentValue('0');
-                            handleAssignAmount(p.id);
-                          }}
-                          className="p-1 text-ink/20 hover:text-red-500 transition-colors"
-                          title={t('common.cancel')}
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <span className="font-bold text-ink">
-                        {formatCurrency(p.allocated_amount)}
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-            );
-          })}
+          {bill.participants.map((p) => (
+            <ParticipantCard 
+              key={p.id}
+              participant={p}
+              isOwner={p.user_id === bill.owner_id}
+              reaction={p.user_id ? reactions[p.user_id] : undefined}
+              isCreatorView={true}
+              onDelete={handleDeleteParticipant}
+              onTogglePayment={handleTogglePaymentStatus}
+              onAssign={(id) => {
+                setAssigningId(id);
+                setAssignmentValue(p.allocated_amount.toString());
+              }}
+            />
+          ))}
           
           <motion.div
             layout

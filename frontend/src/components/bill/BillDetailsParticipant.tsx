@@ -1,22 +1,20 @@
-'use client';
-
 import { useState } from 'react';
 import { BillDetail, User } from '@/types/api';
-import { formatCurrency } from '@/lib/utils/currency';
-import Button from '@/components/ui/Button';
-import { motion } from 'framer-motion';
-import { updatePaymentStatus } from '@/lib/api/bills';
-import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
+import BillOverview from './BillOverview';
+import ParticipantCard from './ParticipantCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { updatePaymentStatus } from '@/lib/api/bills';
+import Button from '@/components/ui/Button';
 
 interface BillDetailsParticipantProps {
   bill: BillDetail;
   currentUser: User | null;
   setBill: (bill: BillDetail) => void;
+  reactions?: Record<number, string>;
 }
 
-export default function BillDetailsParticipant({ bill, currentUser, setBill }: BillDetailsParticipantProps) {
+export default function BillDetailsParticipant({ bill, currentUser, setBill, reactions = {} }: BillDetailsParticipantProps) {
   const { t } = useTranslation();
   // Find my participation record
   const myParticipation = bill.participants.find(p => p.user_id === currentUser?.id);
@@ -56,6 +54,7 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
       <BillOverview bill={bill} />
 
       <YouShareBlock 
+        billId={bill.id}
         myParticipation={myParticipation} 
         onMarkPaid={handleMarkPaid} 
         loading={loading} 
@@ -68,52 +67,14 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {bill.participants.map((p) => {
-            const isOwner = p.user_id === bill.owner_id;
-            return (
-              <motion.div
-                key={p.id}
-                layout
-                className={`
-                  p-3 rounded-lg border-2 
-                  ${isOwner 
-                    ? 'border-accent/40 bg-accent/5' 
-                    : p.is_paid 
-                      ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800' 
-                      : 'bg-paper border-ink/10'
-                  }
-                `}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <div className="w-7 h-7 rounded-full overflow-hidden border border-ink/10 flex-shrink-0 bg-accent/20">
-                        {p.avatar_url ? (
-                          <img src={p.avatar_url} alt={p.username || ''} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-paper-highlight text-[10px] font-bold text-accent">
-                            {(p.username || p.guest_name || 'U').charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <p className="font-medium text-ink truncate text-sm">
-                        {p.username || p.guest_name || `User #${p.user_id}`}
-                      </p>
-                    </div>
-                    <p className="text-xs text-ink/50">
-                      {isOwner ? `👑 ${t('bill.creatorRole')}` : p.is_paid ? `${t('bill.paidLabel')} ✅` : `${t('bill.statusActive')} ⏳`}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="relative h-8 flex items-center justify-end overflow-hidden">
-                  <div className="font-bold text-ink">
-                    {formatCurrency(p.allocated_amount)}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+          {bill.participants.map((p) => (
+            <ParticipantCard 
+              key={p.id}
+              participant={p}
+              isOwner={p.user_id === bill.owner_id}
+              reaction={p.user_id ? reactions[p.user_id] : undefined}
+            />
+          ))}
         </div>
       </div>
 

@@ -6,7 +6,7 @@ from app.schemas.bill_schemas import (
     BillCreate, BillResponse, BillItemCreate, BillItemResponse,
     BillParticipantCreate, BillParticipantResponse, BillDetailResponse,
     BillParticipantAssign, BillParticipantPaymentUpdate, BillParticipantRemove,
-    BillSplitRemainder
+    BillSplitRemainder, ReactionCreate
 )
 from app.repositories.bill_repo import BillRepository
 from app.repositories.user_repo import UserRepository
@@ -149,3 +149,9 @@ async def bill_events(bill_id: int):
             "X-Accel-Buffering": "no"
         }
     )
+
+@router.post("/{bill_id}/reactions")
+def send_reaction(bill_id: int, reaction: ReactionCreate):
+    """Broadcast a reaction to all bill participants"""
+    notifier.broadcast(bill_id, f"REACTION:{reaction.user_id}:{reaction.emoji}")
+    return {"status": "ok"}
