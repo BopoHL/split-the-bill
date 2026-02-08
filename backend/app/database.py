@@ -16,7 +16,7 @@ DB_NAME = os.getenv("DB_NAME")
 
 # Construct DATABASE_URL if all components are provided
 if all([DB_HOST, DB_USER, DB_PASSWORD, DB_NAME]):
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?client_encoding=utf8"
 else:
     # Fallback to DATABASE_URL environment variable or SQLite default
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./split_the_bill.db")

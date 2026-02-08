@@ -57,7 +57,6 @@ cp .env.example .env.local
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_TELEGRAM_BOT_ID=your_bot_id_here
 ```
 
 5. Run the development server:
@@ -136,7 +135,6 @@ The app uses a notebook theme with the following color palette:
 1. Create a Telegram bot via [@BotFather](https://t.me/botfather)
 2. Enable Mini App in bot settings
 3. Set the Mini App URL to your deployment URL
-4. Update `NEXT_PUBLIC_TELEGRAM_BOT_ID` in `.env.local`
 
 ## Backend Integration
 
