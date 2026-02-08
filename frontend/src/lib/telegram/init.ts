@@ -42,7 +42,11 @@ export function getTelegramWebApp(): TelegramWebApp | null {
  * Check if app is running inside Telegram
  */
 export function isTelegramWebApp(): boolean {
-  return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
+  if (typeof window === 'undefined') return false;
+  
+  // Checking for initData is more reliable than just checking for window.Telegram.WebApp
+  // because the script might be loaded but we might be in a regular browser
+  return !!(window.Telegram?.WebApp && window.Telegram.WebApp.initData);
 }
 
 /**
