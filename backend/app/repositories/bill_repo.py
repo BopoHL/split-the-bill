@@ -80,3 +80,7 @@ class BillRepository:
     def get_items_by_bill_id_and_participant(self, bill_id: int, user_id: int) -> list[BillItem]:
         statement = select(BillItem).where(BillItem.bill_id == bill_id, BillItem.assigned_to_user_id == user_id)
         return self.session.exec(statement).all()
+
+    def get_participant_by_bill_and_user(self, bill_id: int, user_id: int) -> BillUser | None:
+        statement = select(BillUser).where(BillUser.bill_id == bill_id, BillUser.user_id == user_id)
+        return self.session.exec(statement).first()

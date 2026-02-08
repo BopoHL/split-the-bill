@@ -8,7 +8,9 @@ import { Plus, Check, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder } from '@/lib/api/bills';
+import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink } from '@/lib/api/bills';
+import { shareLink } from '@/lib/telegram/init';
+import { Users } from 'lucide-react';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -252,9 +254,22 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
-          <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
-            <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-accent border-accent/20 hover:bg-accent/5"
+              onClick={() => {
+                const link = generateTelegramShareLink(bill.id, bill.title || '');
+                shareLink(link);
+              }}
+            >
+              <Users className="w-4 h-4 mr-1" /> {t('common.invite')}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
+              <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -277,8 +292,17 @@ export default function BillDetailsCreator({ bill, setBill, currentUser }: BillD
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0 pr-2">
                     <div className="flex items-center gap-1.5 mb-0.5">
+                      <div className="w-7 h-7 rounded-full overflow-hidden border border-ink/10 flex-shrink-0 bg-accent/20">
+                        {p.avatar_url ? (
+                          <img src={p.avatar_url} alt={p.username || ''} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-paper-highlight text-[10px] font-bold text-accent">
+                            {(p.username || p.guest_name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
                       <p className="font-medium text-ink truncate text-sm">
-                        {p.guest_name || `User #${p.user_id}`}
+                        {p.username || p.guest_name || `User #${p.user_id}`}
                       </p>
                       {!isOwner && (
                         <button

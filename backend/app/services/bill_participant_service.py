@@ -113,6 +113,37 @@ class BillParticipantService:
         
         return self._get_bill_details_response(bill_id)
 
+    def join_bill(self, bill_id: int, user_id: int) -> BillParticipantResponse:
+        bill = self.validator.get_bill_or_404(bill_id)
+        self.validator.ensure_bill_open(bill)
+        
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        existing_participant = self.bill_repo.get_participant_by_bill_and_user(bill_id, user_id)
+        if existing_participant:
+            return self._to_response(existing_participant)
+            
+        participant = BillUser(
+            bill_id=bill_id,
+            user_id=user_id,
+            allocated_amount=0
+        )
+        
+        created_participant = self.bill_repo.add_participant(participant)
+        
+        if bill.split_type == SplitType.EQUALLY:
+            if self.split_service:
+                self.split_service.split_bill_equally(bill_id)
+        else:
+            bill.split_type = SplitType.MANUAL
+            self.bill_repo.session.add(bill)
+            
+        self.bill_repo.session.commit()
+        self.bill_repo.session.refresh(created_participant)
+        return self._to_response(created_participant)
+
     def _get_bill_details_response(self, bill_id: int) -> BillDetailResponse:
         bill = self.validator.get_bill_or_404(bill_id)
         items = self.bill_repo.get_items_by_bill_id(bill_id)
@@ -141,11 +172,20 @@ class BillParticipantService:
         )
 
     def _to_response(self, p: BillUser) -> BillParticipantResponse:
+        username = p.guest_name
+        avatar_url = None
+        
+        if p.user:
+            username = p.user.username
+            avatar_url = p.user.avatar_url
+            
         return BillParticipantResponse(
             id=p.id,
             bill_id=p.bill_id,
             user_id=p.user_id,
             guest_name=p.guest_name,
+            username=username,
+            avatar_url=avatar_url,
             allocated_amount=from_tiins(p.allocated_amount),
             is_paid=p.is_paid
         )

@@ -11,7 +11,6 @@ import { Bill } from '@/types/api';
 import { createBill, addBillItem, addBillParticipant, getUserBills } from '@/lib/api/bills';
 import FloatingCreateButton from '@/components/ui/FloatingCreateButton';
 import { useRouter } from 'next/navigation';
-import DevUserSwitcher from '@/components/ui/DevUserSwitcher';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface BillSubmitData {
@@ -229,7 +228,6 @@ export default function HomePage() {
               </div>
             )}
 
-            <DevUserSwitcher />
 
             {/* Language Toggle */}
             <Button

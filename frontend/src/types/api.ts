@@ -61,6 +61,8 @@ export interface BillParticipant {
   bill_id: number;
   user_id: number | null;
   guest_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
   allocated_amount: number;
   is_paid: boolean;
 }

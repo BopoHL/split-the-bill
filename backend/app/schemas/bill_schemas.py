@@ -50,6 +50,8 @@ class BillParticipantResponse(BaseModel):
     bill_id: int
     user_id: int | None
     guest_name: str | None
+    username: str | None = None
+    avatar_url: str | None = None
     allocated_amount: float
     is_paid: bool
 

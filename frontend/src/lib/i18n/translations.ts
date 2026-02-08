@@ -15,6 +15,7 @@ export const translations = {
       back: 'Back',
       next: 'Next',
       confirm: 'Confirm',
+      invite: 'Invite',
     },
     home: {
       welcome: 'Welcome back, {name}! 👋',
@@ -92,6 +93,7 @@ export const translations = {
       back: 'Назад',
       next: 'Далее',
       confirm: 'Подтвердить',
+      invite: 'Пригласить',
     },
     home: {
       welcome: 'С возвращением, {name}! 👋',
@@ -169,6 +171,7 @@ export const translations = {
       back: 'Orqaga',
       next: 'Keyingi',
       confirm: 'Tasdiqlash',
+      invite: 'Taklif qilish',
     },
     home: {
       welcome: 'Xush kelibsiz, {name}! 👋',

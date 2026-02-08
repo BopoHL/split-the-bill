@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { Caveat } from 'next/font/google';
 import './globals.css';
 import { useStore } from '@/lib/store/useStore';
-import { initTelegramSDK, getTelegramUser, getTelegramTheme, isTelegramWebApp } from '@/lib/telegram/init';
+import { initTelegramSDK, getTelegramUser, getTelegramTheme, isTelegramWebApp, getStartParam } from '@/lib/telegram/init';
 import { getUserByTelegramId } from '@/lib/api/users';
+import { joinBill } from '@/lib/api/bills';
 import Script from 'next/script';
 import ExternalLanding from '@/components/ui/ExternalLanding';
+import { useRouter } from 'next/navigation';
 
 const caveat = Caveat({
   variable: '--font-handwritten',
@@ -22,6 +24,7 @@ export default function RootLayout({
 }>) {
   const { theme, setTheme, setCurrentUser, language } = useStore();
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Check if running in Telegram
@@ -45,9 +48,23 @@ export default function RootLayout({
             telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
             telegramUser.photo_url,
             window.Telegram?.WebApp?.initData
-          ).then((user) => {
+          ).then(async (user) => {
             if (user) {
               setCurrentUser(user);
+              
+              // Handle startapp parameter (deep linking)
+              const startParam = getStartParam();
+              if (startParam && startParam.startsWith('join_')) {
+                const billId = parseInt(startParam.split('_')[1]);
+                if (!isNaN(billId)) {
+                  try {
+                    await joinBill(billId, user.id);
+                    router.push(`/bill/${billId}`);
+                  } catch (err) {
+                    console.error('Failed to join bill from start param:', err);
+                  }
+                }
+              }
             }
           }).catch((error) => {
             console.error('Failed to sync Telegram user in root:', error);
@@ -55,7 +72,7 @@ export default function RootLayout({
         }
       }
     }
-  }, [setTheme, setCurrentUser]);
+  }, [setTheme, setCurrentUser, router]);
 
   // Apply theme class to html element
   useEffect(() => {

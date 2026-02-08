@@ -119,13 +119,26 @@ export function generateInviteLink(billId: number): string {
 }
 
 /**
- * Generate Telegram share link
+ * Generate Telegram share link (Direct Mini App link)
  */
 export function generateTelegramShareLink(billId: number, billTitle: string): string {
-  const inviteLink = generateInviteLink(billId);
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'SplitTheBillsBot';
+  const cleanUsername = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername;
+  
   const text = encodeURIComponent(`Join my bill: ${billTitle}`);
-  const url = encodeURIComponent(inviteLink);
-  return `https://t.me/share/url?url=${url}&text=${text}`;
+  // Deep link format: https://t.me/botusername/appname?startapp=join_123
+  // Using the standard share link with startapp parameter
+  return `https://t.me/share/url?url=https://t.me/${cleanUsername}/app?startapp=join_${billId}&text=${text}`;
+}
+
+/**
+ * Join a bill as current user
+ */
+export async function joinBill(billId: number, userId: number): Promise<BillParticipant> {
+  const response = await apiClient.post<BillParticipant>(`/bills/${billId}/join`, {
+    user_id: userId
+  });
+  return response.data;
 }
 /**
  * Assign a specific amount to a participant

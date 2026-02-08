@@ -11,7 +11,6 @@ import { motion } from 'framer-motion';
 import BillDetailsCreator from '@/components/bill/BillDetailsCreator';
 import BillDetailsParticipant from '@/components/bill/BillDetailsParticipant';
 import { showBackButton, hideBackButton, shareLink } from '@/lib/telegram/init';
-import DevUserSwitcher from '@/components/ui/DevUserSwitcher';
 
 export default function BillPage() {
   const params = useParams();
@@ -106,7 +105,6 @@ export default function BillPage() {
           </h1>
           
           <div className="flex items-center gap-1">
-            <DevUserSwitcher />
             <button 
               onClick={() => {
                 const link = `${window.location.origin}/join/${bill.id}`;

@@ -121,3 +121,12 @@ def remove_bill_participant(
 ):
     """Remove a participant from the bill"""
     return service.delete_bill_participant(bill_id, participant_id, remove_data.user_id)
+
+@router.post("/{bill_id}/join", response_model=BillParticipantResponse)
+def join_bill(
+    bill_id: int,
+    join_data: BillParticipantRemove, # Reusing same schema as it just has user_id
+    service: BillParticipantService = Depends(get_bill_participant_service)
+):
+    """Join a bill as current user"""
+    return service.join_bill(bill_id, join_data.user_id)
