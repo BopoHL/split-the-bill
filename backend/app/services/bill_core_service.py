@@ -5,6 +5,7 @@ from app.models import Bill, BillUser
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillCreate, BillResponse, BillDetailResponse, BillItemResponse, BillParticipantResponse
 from app.services.validator import BillValidator
+from app.services.bill_participant_service import BillParticipantService
 
 class BillCoreService:
     def __init__(self, bill_repo: BillRepository, user_repo: UserRepository):
@@ -74,14 +75,7 @@ class BillCoreService:
                 item_sum=from_tiins(item.item_sum),
                 assigned_to_user_id=item.assigned_to_user_id
             ) for item in items],
-            participants=[BillParticipantResponse(
-                id=p.id,
-                bill_id=p.bill_id,
-                user_id=p.user_id,
-                guest_name=p.guest_name,
-                allocated_amount=from_tiins(p.allocated_amount),
-                is_paid=p.is_paid
-            ) for p in participants]
+            participants=[BillParticipantService.map_to_response(p) for p in participants]
         )
 
     def get_user_bills(self, user_id: int, offset: int = 0, limit: int = 10) -> list[BillResponse]:

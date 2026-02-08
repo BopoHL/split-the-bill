@@ -48,14 +48,14 @@ class BillParticipantService:
         self.bill_repo.session.commit()
         
         all_participants = self.bill_repo.get_participants_by_bill_id(bill_id)
-        return [self._to_response(p) for p in all_participants]
+        return [self.map_to_response(p) for p in all_participants]
 
     def update_payment_status(self, bill_id: int, participant_id: int, payment_data: BillParticipantPaymentUpdate) -> BillParticipantResponse:
         bill = self.validator.get_bill_or_404(bill_id)
         participant = self.validator.get_participant_or_404(participant_id, bill_id)
 
         if participant.is_paid == payment_data.is_paid:
-            return self._to_response(participant)
+            return self.map_to_response(participant)
 
         is_owner = (bill.owner_id == payment_data.user_id)
         is_self = (participant.user_id == payment_data.user_id)
@@ -74,7 +74,7 @@ class BillParticipantService:
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
 
-        return self._to_response(participant)
+        return self.map_to_response(participant)
 
     def delete_bill_participant(self, bill_id: int, participant_id: int, requester_id: int) -> BillDetailResponse:
         bill = self.validator.get_bill_or_404(bill_id)
@@ -123,7 +123,7 @@ class BillParticipantService:
             
         existing_participant = self.bill_repo.get_participant_by_bill_and_user(bill_id, user_id)
         if existing_participant:
-            return self._to_response(existing_participant)
+            return self.map_to_response(existing_participant)
             
         participant = BillUser(
             bill_id=bill_id,
@@ -142,7 +142,12 @@ class BillParticipantService:
             
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(created_participant)
-        return self._to_response(created_participant)
+        
+        # Ensure user relationship is loaded for the response
+        if created_participant.user_id and not created_participant.user:
+            created_participant.user = self.user_repo.get_by_id(created_participant.user_id)
+            
+        return self.map_to_response(created_participant)
 
     def _get_bill_details_response(self, bill_id: int) -> BillDetailResponse:
         bill = self.validator.get_bill_or_404(bill_id)
@@ -168,14 +173,15 @@ class BillParticipantService:
                 item_sum=from_tiins(item.item_sum),
                 assigned_to_user_id=item.assigned_to_user_id
             ) for item in items],
-            participants=[self._to_response(p) for p in participants]
+            participants=[self.map_to_response(p) for p in participants]
         )
 
-    def _to_response(self, p: BillUser) -> BillParticipantResponse:
+    @staticmethod
+    def map_to_response(p: BillUser) -> BillParticipantResponse:
         username = p.guest_name
         avatar_url = None
         
-        if p.user:
+        if hasattr(p, "user") and p.user:
             username = p.user.username
             avatar_url = p.user.avatar_url
             

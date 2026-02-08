@@ -5,6 +5,7 @@ from app.models import SplitType
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillParticipantResponse, BillParticipantAssign
 from app.services.validator import BillValidator
+from app.services.bill_participant_service import BillParticipantService
 
 class BillSplitService:
     def __init__(self, bill_repo: BillRepository, user_repo: UserRepository):
@@ -52,7 +53,7 @@ class BillSplitService:
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
             
-        return [self._to_response(p) for p in all_participants]
+        return [BillParticipantService.map_to_response(p) for p in all_participants]
 
     def split_bill_remainder(self, bill_id: int, p_ids: list[int]) -> list[BillParticipantResponse]:
         bill = self.validator.get_bill_or_404(bill_id)
@@ -99,7 +100,7 @@ class BillSplitService:
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
 
-        return [self._to_response(p) for p in all_participants]
+        return [BillParticipantService.map_to_response(p) for p in all_participants]
 
     def assign_amount(self, bill_id: int, assign_data: BillParticipantAssign) -> BillParticipantResponse:
         bill = self.validator.get_bill_or_404(bill_id)
@@ -124,14 +125,5 @@ class BillSplitService:
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
         
-        return self._to_response(participant)
+        return BillParticipantService.map_to_response(participant)
 
-    def _to_response(self, p) -> BillParticipantResponse:
-        return BillParticipantResponse(
-            id=p.id,
-            bill_id=p.bill_id,
-            user_id=p.user_id,
-            guest_name=p.guest_name,
-            allocated_amount=from_tiins(p.allocated_amount),
-            is_paid=p.is_paid
-        )
