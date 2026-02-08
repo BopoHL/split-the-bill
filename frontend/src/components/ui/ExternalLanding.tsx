@@ -1,16 +1,44 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Send } from "lucide-react";
-import Button from "./Button";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import TelegramLoginButton from "./TelegramLoginButton";
+import { useStore } from "@/lib/store/useStore";
+import { getUserByTelegramId } from "@/lib/api/users";
+
+interface TelegramAuthUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
 
 export default function ExternalLanding() {
   const { t } = useTranslation();
+  const { setCurrentUser } = useStore();
   const botUsername =
-    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "SplitTheBillBot";
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "SplitTheBillsBot";
   const cleanUsername = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername;
-  const botLink = `https://t.me/${cleanUsername}`;
+  
+  const handleTelegramAuth = async (user: TelegramAuthUser) => {
+    try {
+      const syncedUser = await getUserByTelegramId(
+        user.id,
+        user.username || `${user.first_name} ${user.last_name || ''}`.trim(),
+        user.photo_url,
+        undefined, // no initData for widget
+        user       // send full widget user object for hash verification
+      );
+      if (syncedUser) {
+        setCurrentUser(syncedUser);
+      }
+    } catch (error) {
+      console.error('Failed to sync external user:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen notebook-page flex items-center justify-center p-4">
@@ -40,14 +68,11 @@ export default function ExternalLanding() {
             ))}
           </p>
 
-          <div className="pt-4">
-            <Button
-              className="w-full flex items-center justify-center gap-2 py-4 text-xl shadow-lg ring-2 ring-accent/20"
-              onClick={() => window.open(botLink, "_blank")}
-            >
-              <Send className="w-6 h-6" />
-              {t('common.loginWithTelegram')}
-            </Button>
+          <div className="pt-4 flex justify-center">
+            <TelegramLoginButton 
+              botName={cleanUsername}
+              onAuth={handleTelegramAuth}
+            />
           </div>
 
           <p className="text-sm font-handwritten text-ink/60 italic transform -rotate-1">

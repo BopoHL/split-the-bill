@@ -43,7 +43,8 @@ export default function RootLayout({
           getUserByTelegramId(
             telegramUser.id,
             telegramUser.username || `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-            telegramUser.photo_url
+            telegramUser.photo_url,
+            window.Telegram?.WebApp?.initData
           ).then((user) => {
             if (user) {
               setCurrentUser(user);
