@@ -4,6 +4,7 @@ import YouShareBlock from './YouShareBlock';
 import BillOverview from './BillOverview';
 import ParticipantCard from './ParticipantCard';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { formatCurrency } from '@/lib/utils/currency';
 import { updatePaymentStatus } from '@/lib/api/bills';
 import Button from '@/components/ui/Button';
 

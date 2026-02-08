@@ -186,3 +186,17 @@ export async function splitRemainder(
   );
   return response.data;
 }
+
+/**
+ * Send a reaction to a bill
+ */
+export async function sendReaction(
+  billId: number,
+  userId: number,
+  emoji: string
+): Promise<void> {
+  await apiClient.post(`/bills/${billId}/reactions`, {
+    user_id: userId,
+    emoji: emoji,
+  });
+}

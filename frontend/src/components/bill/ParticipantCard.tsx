@@ -12,9 +12,13 @@ interface ParticipantCardProps {
   reaction?: string;
   onDelete?: (id: number) => void;
   onTogglePayment?: (id: number, currentPaid: boolean) => void;
-  onAssign?: (id: number, currentAmount: number) => void;
+  onAssignAmount?: (id: number, amount: number) => Promise<void>;
   isCreatorView?: boolean;
 }
+
+import { useState } from 'react';
+import { Check, X } from 'lucide-react';
+import { displayToAmount } from '@/lib/utils/currency';
 
 export default function ParticipantCard({
   participant,
@@ -22,11 +26,26 @@ export default function ParticipantCard({
   reaction,
   onDelete,
   onTogglePayment,
-  onAssign,
+  onAssignAmount,
   isCreatorView
 }: ParticipantCardProps) {
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
   const p = participant;
+
+  const handleStartEdit = () => {
+    setEditValue(p.allocated_amount.toString());
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    const amount = displayToAmount(editValue);
+    if (!isNaN(amount) && onAssignAmount) {
+      await onAssignAmount(p.id, amount);
+      setIsEditing(false);
+    }
+  };
 
   return (
     <motion.div
@@ -89,9 +108,9 @@ export default function ParticipantCard({
         {isCreatorView && (
           <div className="flex flex-col items-end gap-1">
             {isOwner ? (
-              onAssign && (
+              onAssignAmount && (
                 <button 
-                  onClick={() => onAssign(p.id, p.allocated_amount)}
+                  onClick={handleStartEdit}
                   className="text-[10px] uppercase font-bold text-accent hover:underline"
                 >
                   {t('bill.assign')}
@@ -118,9 +137,9 @@ export default function ParticipantCard({
                         {t('common.confirm')}
                       </button>
                     )}
-                    {onAssign && (
+                    {onAssignAmount && (
                       <button 
-                        onClick={() => onAssign(p.id, p.allocated_amount)}
+                        onClick={handleStartEdit}
                         className="text-[10px] uppercase font-bold text-accent hover:underline"
                       >
                         {t('bill.assign')}
@@ -135,9 +154,62 @@ export default function ParticipantCard({
       </div>
       
       <div className="relative h-8 flex items-center justify-end overflow-hidden">
-        <div className="font-bold text-ink">
-          {formatCurrency(p.allocated_amount)}
-        </div>
+        <AnimatePresence mode="wait">
+          {isEditing ? (
+            <motion.div
+              key="assign-input"
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 50, opacity: 0 }}
+              className="absolute inset-0 flex items-center gap-1 bg-paper pl-1"
+            >
+              <input
+                type="text"
+                inputMode="decimal"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="w-full text-right font-mono text-sm border-b border-accent focus:outline-none bg-transparent"
+                autoFocus
+              />
+              <button 
+                onClick={handleSave}
+                className="p-1 text-green-600 hover:bg-green-50 rounded"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setIsEditing(false)}
+                className="p-1 text-red-600 hover:bg-red-50 rounded"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="amount-display"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -20, opacity: 0 }}
+              className="flex items-center gap-2"
+            >
+              {!p.is_paid && p.allocated_amount > 0 && isCreatorView && (
+                <button
+                  onClick={() => {
+                    const confirmCancel = confirm(t('bill.cancelAllocationAlert') || 'Cancel allocation?');
+                    if (confirmCancel && onAssignAmount) onAssignAmount(p.id, 0);
+                  }}
+                  className="p-1 text-ink/20 hover:text-red-500 transition-colors"
+                  title={t('common.cancel')}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <span className="font-bold text-ink">
+                {formatCurrency(p.allocated_amount)}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

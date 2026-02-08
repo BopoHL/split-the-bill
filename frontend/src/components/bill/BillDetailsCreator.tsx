@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { BillDetail, SplitType, User } from '@/types/api';
 import { formatCurrency, displayToAmount } from '@/lib/utils/currency';
 import Button from '@/components/ui/Button';
-import { Plus, Check, X, Users } from 'lucide-react';
+import { Plus, Users, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink, sendReaction } from '@/lib/api/bills';
+import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink } from '@/lib/api/bills';
 import { shareLink } from '@/lib/telegram/init';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
@@ -31,8 +31,6 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
   const [newItemPrice, setNewItemPrice] = useState('');
   const [newItemCount, setNewItemCount] = useState('1');
   const [loading, setLoading] = useState(false);
-  const [assigningId, setAssigningId] = useState<number | null>(null);
-  const [assignmentValue, setAssignmentValue] = useState('');
 
   const handleSplitBetween = async (participantIds: number[]) => {
     if (participantIds.length === 0) {
@@ -54,53 +52,6 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       alert(t('common.error'));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAssignAmount = async (participantId: number) => {
-    const amount = displayToAmount(assignmentValue);
-    if (isNaN(amount) || amount < 0) return;
-
-    try {
-      setLoading(true);
-      const updatedParticipant = await assignAmount(bill.id, participantId, amount);
-      
-      const newParticipants = bill.participants.map(p => 
-        p.id === participantId ? updatedParticipant : p
-      );
-      
-      const oldParticipant = bill.participants.find(p => p.id === participantId);
-      const diff = updatedParticipant.allocated_amount - (oldParticipant?.allocated_amount || 0);
-      
-      setBill({
-        ...bill,
-        participants: newParticipants,
-        unallocated_sum: Math.max(0, bill.unallocated_sum - diff),
-        split_type: SplitType.MANUAL
-      });
-      
-      setAssigningId(null);
-      setAssignmentValue('');
-    } catch (e) {
-      console.error(e);
-      alert(t('common.error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAssignmentInputChange = (val: string) => {
-    if (val === '' || /^\d*[.,]?\d{0,2}$/.test(val)) {
-      const amount = displayToAmount(val);
-      const participant = bill.participants.find(p => p.id === assigningId);
-      const currentAllocated = participant?.allocated_amount || 0;
-      const maxPossible = bill.unallocated_sum + currentAllocated;
-
-      if (amount > maxPossible) {
-        setAssignmentValue(maxPossible.toString());
-      } else {
-        setAssignmentValue(val);
-      }
     }
   };
 
@@ -236,6 +187,32 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
     }
   };
 
+  const handleAssignAmount = async (participantId: number, amount: number) => {
+    try {
+      setLoading(true);
+      const updatedParticipant = await assignAmount(bill.id, participantId, amount);
+      
+      const newParticipants = bill.participants.map(p => 
+        p.id === participantId ? updatedParticipant : p
+      );
+      
+      const oldParticipant = bill.participants.find(p => p.id === participantId);
+      const diff = updatedParticipant.allocated_amount - (oldParticipant?.allocated_amount || 0);
+      
+      setBill({
+        ...bill,
+        participants: newParticipants,
+        unallocated_sum: Math.max(0, bill.unallocated_sum - diff),
+        split_type: SplitType.MANUAL
+      });
+    } catch (e) {
+      console.error(e);
+      alert(t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <BillOverview 
@@ -286,10 +263,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
               isCreatorView={true}
               onDelete={handleDeleteParticipant}
               onTogglePayment={handleTogglePaymentStatus}
-              onAssign={(id) => {
-                setAssigningId(id);
-                setAssignmentValue(p.allocated_amount.toString());
-              }}
+              onAssignAmount={handleAssignAmount}
             />
           ))}
           
