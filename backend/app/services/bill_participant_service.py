@@ -6,6 +6,7 @@ from app.models import BillUser, SplitType
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillParticipantCreate, BillParticipantResponse, BillParticipantPaymentUpdate, BillDetailResponse, BillItemResponse
 from app.services.validator import BillValidator
+from app.notifier import notifier
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +40,17 @@ class BillParticipantService:
         
         if bill.split_type == SplitType.EQUALLY:
             if self.split_service:
-                return self.split_service.split_bill_equally(bill_id)
+                result = self.split_service.split_bill_equally(bill_id)
+                notifier.broadcast(bill_id, "REFRESH")
+                return result
         
         # Default behavior: switch to manual if it wasn't equal (already set by default or manually)
         # and return all participants
         bill.split_type = SplitType.MANUAL
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
+        
+        notifier.broadcast(bill_id, "REFRESH")
         
         all_participants = self.bill_repo.get_participants_by_bill_id(bill_id)
         return [self.map_to_response(p) for p in all_participants]
@@ -73,6 +78,8 @@ class BillParticipantService:
         self.bill_repo.session.add(participant)
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
+
+        notifier.broadcast(bill_id, "REFRESH")
 
         return self.map_to_response(participant)
 
@@ -111,6 +118,8 @@ class BillParticipantService:
         
         self.bill_repo.session.commit()
         
+        notifier.broadcast(bill_id, "REFRESH")
+        
         return self._get_bill_details_response(bill_id)
 
     def join_bill(self, bill_id: int, user_id: int) -> BillParticipantResponse:
@@ -142,6 +151,8 @@ class BillParticipantService:
             
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(created_participant)
+        
+        notifier.broadcast(bill_id, "REFRESH")
         
         # Ensure user relationship is loaded for the response
         if created_participant.user_id and not created_participant.user:

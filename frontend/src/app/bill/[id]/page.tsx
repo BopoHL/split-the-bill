@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store/useStore';
 import { getBill, generateTelegramShareLink } from '@/lib/api/bills';
@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import BillDetailsCreator from '@/components/bill/BillDetailsCreator';
 import BillDetailsParticipant from '@/components/bill/BillDetailsParticipant';
 import { showBackButton, hideBackButton, shareLink } from '@/lib/telegram/init';
+import { useBillEvents } from '@/hooks/useBillEvents';
 
 export default function BillPage() {
   const params = useParams();
@@ -33,28 +34,30 @@ export default function BillPage() {
     };
   }, [router]);
 
-  useEffect(() => {
-    const fetchBill = async () => {
-      if (!id) return;
+  const fetchBill = useCallback(async (showLoading = false) => {
+    if (!id) return;
+    
+    try {
+      if (showLoading) setLoading(true);
+      const billId = parseInt(Array.isArray(id) ? id[0] : id);
+      if (isNaN(billId)) throw new Error('Invalid bill ID');
       
-      try {
-        setLoading(true);
-        // Cast id to number safely
-        const billId = parseInt(Array.isArray(id) ? id[0] : id);
-        if (isNaN(billId)) throw new Error('Invalid bill ID');
-        
-        const data = await getBill(billId);
-        setBill(data);
-      } catch (err: unknown) {
-        console.error('Error fetching bill:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load bill');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBill();
+      const data = await getBill(billId);
+      setBill(data);
+    } catch (err: unknown) {
+      console.error('Error fetching bill:', err);
+      if (showLoading) setError(err instanceof Error ? err.message : 'Failed to load bill');
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchBill(true);
+  }, [fetchBill]);
+
+  // Subscribe to real-time events
+  useBillEvents(bill?.id, fetchBill);
 
   if (loading) {
     return (

@@ -6,6 +6,7 @@ from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillParticipantResponse, BillParticipantAssign
 from app.services.validator import BillValidator
 from app.services.bill_participant_service import BillParticipantService
+from app.notifier import notifier
 
 class BillSplitService:
     def __init__(self, bill_repo: BillRepository, user_repo: UserRepository):
@@ -52,6 +53,8 @@ class BillSplitService:
         bill.unallocated_sum = 0
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
+        
+        notifier.broadcast(bill_id, "REFRESH")
             
         return [BillParticipantService.map_to_response(p) for p in all_participants]
 
@@ -99,6 +102,8 @@ class BillSplitService:
         bill.split_type = SplitType.MANUAL # Becomes manual as it's a specific allocation
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
+        
+        notifier.broadcast(bill_id, "REFRESH")
 
         return [BillParticipantService.map_to_response(p) for p in all_participants]
 
@@ -124,6 +129,8 @@ class BillSplitService:
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
+        
+        notifier.broadcast(bill_id, "REFRESH")
         
         return BillParticipantService.map_to_response(participant)
 

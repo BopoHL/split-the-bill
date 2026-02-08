@@ -5,6 +5,7 @@ from app.models import BillItem
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillItemCreate, BillItemResponse
 from app.services.validator import BillValidator
+from app.notifier import notifier
 
 class BillItemService:
     def __init__(self, bill_repo: BillRepository, user_repo: UserRepository):
@@ -33,6 +34,9 @@ class BillItemService:
             assigned_to_user_id=item_data.assigned_to_user_id
         )
         created_item = self.bill_repo.add_item(item)
+        
+        notifier.broadcast(bill_id, "REFRESH")
+        
         return BillItemResponse(
             id=created_item.id,
             bill_id=created_item.bill_id,
@@ -52,3 +56,4 @@ class BillItemService:
             raise HTTPException(status_code=404, detail="Item not found for this bill")
 
         self.bill_repo.delete_item(item)
+        notifier.broadcast(bill_id, "REFRESH")

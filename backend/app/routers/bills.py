@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session
 from app.database import get_session
 from app.schemas.bill_schemas import (
@@ -13,6 +14,7 @@ from app.services.bill_core_service import BillCoreService
 from app.services.bill_item_service import BillItemService
 from app.services.bill_participant_service import BillParticipantService
 from app.services.bill_split_service import BillSplitService
+from app.notifier import notifier
 
 router = APIRouter(prefix="/bills", tags=["bills"])
 
@@ -130,3 +132,20 @@ def join_bill(
 ):
     """Join a bill as current user"""
     return service.join_bill(bill_id, join_data.user_id)
+
+@router.get("/{bill_id}/events")
+async def bill_events(bill_id: int):
+    """Subscribe to real-time updates for a specific bill"""
+    async def event_generator():
+        async for message in notifier.subscribe(bill_id):
+            yield f"data: {message}\n\n"
+            
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )

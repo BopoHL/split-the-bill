@@ -26,6 +26,6 @@ def client_fixture(session: Session):
         return session
 
     app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://testserver/api")
     yield client
     app.dependency_overrides.clear()
