@@ -1,5 +1,6 @@
 from sqlmodel import Session, select, or_, func
 from sqlalchemy import exists, select as sa_select
+from sqlalchemy.orm import selectinload
 from app.models import Bill, BillItem, BillUser
 
 class BillRepository:
@@ -60,7 +61,7 @@ class BillRepository:
         return self.session.exec(statement).all()
 
     def get_participants_by_bill_id(self, bill_id: int) -> list[BillUser]:
-        statement = select(BillUser).where(BillUser.bill_id == bill_id)
+        statement = select(BillUser).where(BillUser.bill_id == bill_id).options(selectinload(BillUser.user))
         return self.session.exec(statement).all()
 
     def get_participant_by_id(self, participant_id: int) -> BillUser | None:
@@ -82,5 +83,5 @@ class BillRepository:
         return self.session.exec(statement).all()
 
     def get_participant_by_bill_and_user(self, bill_id: int, user_id: int) -> BillUser | None:
-        statement = select(BillUser).where(BillUser.bill_id == bill_id, BillUser.user_id == user_id)
+        statement = select(BillUser).where(BillUser.bill_id == bill_id, BillUser.user_id == user_id).options(selectinload(BillUser.user))
         return self.session.exec(statement).first()

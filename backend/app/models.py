@@ -31,7 +31,7 @@ class User(TimestampModel, table=True):
     __tablename__ = "users"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    telegram_id: int = Field(unique=True, index=True)
+    telegram_id: int = Field(unique=True, index=True, sa_type=BigInteger)
     username: Optional[str] = None
     avatar_url: Optional[str] = None
     

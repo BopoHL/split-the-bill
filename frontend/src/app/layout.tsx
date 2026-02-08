@@ -23,13 +23,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const { theme, setTheme, setCurrentUser, language } = useStore();
-  const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
+  const [isTelegram] = useState<boolean | null>(() => {
+    if (typeof window !== 'undefined') return isTelegramWebApp();
+    return null;
+  });
   const router = useRouter();
 
   useEffect(() => {
     // Check if running in Telegram
     const isTG = isTelegramWebApp();
-    setIsTelegram(isTG);
 
     if (isTG) {
       // Initialize Telegram SDK

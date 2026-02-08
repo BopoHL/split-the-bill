@@ -83,7 +83,7 @@ export default function YouShareBlock({ myParticipation, onMarkPaid, loading, hi
         </div>
       </div>
 
-      {!isPaid && !hideAction && (
+      {myAmount > 0 && !isPaid && !hideAction && (
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

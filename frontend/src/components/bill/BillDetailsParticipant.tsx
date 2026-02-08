@@ -33,9 +33,10 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill }: B
         p.id === updatedParticipant.id ? updatedParticipant : p
       );
       setBill({ ...bill, participants: updatedParticipants });
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(t('common.error'));
+      const message = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail || t('common.error');
+      alert(message);
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store/useStore';
-import { getBill } from '@/lib/api/bills';
+import { getBill, generateTelegramShareLink } from '@/lib/api/bills';
 import { BillDetail } from '@/types/api';
 import Button from '@/components/ui/Button';
 import { ChevronLeft, Share2, Loader2 } from 'lucide-react';
@@ -107,8 +107,8 @@ export default function BillPage() {
           <div className="flex items-center gap-1">
             <button 
               onClick={() => {
-                const link = `${window.location.origin}/join/${bill.id}`;
-                shareLink(`https://t.me/share/url?url=${link}&text=Join my bill!`);
+                const link = generateTelegramShareLink(bill.id, bill.title || '');
+                shareLink(link);
               }}
               className="p-2 -mr-2 hover:bg-black/5 rounded-full transition-colors text-accent"
             >
