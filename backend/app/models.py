@@ -11,6 +11,13 @@ class SplitType(str, Enum):
     EQUALLY = "equally"
 
 
+class BillStatus(str, Enum):
+    """Enum for bill statuses"""
+    OPEN = "open"
+    PAID = "paid"
+    CLOSED = "closed"
+
+
 class TimestampModel(SQLModel):
     """Base model for adding created_at and updated_at timestamps"""
     created_at: datetime = Field(
@@ -52,6 +59,7 @@ class Bill(TimestampModel, table=True):
     payment_details: Optional[str] = Field(description="Payment details like card number")
     is_closed: bool = Field(default=False)
     split_type: str = Field(default=SplitType.MANUAL)
+    status: str = Field(default=BillStatus.OPEN)
     
     # Relationships
     owner: User = Relationship(back_populates="owned_bills")

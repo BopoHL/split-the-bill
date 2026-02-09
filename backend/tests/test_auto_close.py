@@ -34,21 +34,27 @@ def test_bill_auto_close_on_full_payment(client: TestClient):
     owner_part = next(p for p in participants if p["user_id"] == owner_id)
     p1_part = next(p for p in participants if p["user_id"] == p1_id)
     
-    # 5. Mark owner as paid
-    client.post(f"/bills/{bill_id}/participants/{owner_part['id']}/payment", json={
-        "is_paid": True,
-        "user_id": owner_id
-    })
-    
-    # Bill should still be open
-    assert client.get(f"/bills/{bill_id}").json()["is_closed"] is False
-    
-    # 6. Mark p1 as paid
+    # 5. Mark p1 as paid
     client.post(f"/bills/{bill_id}/participants/{p1_part['id']}/payment", json={
         "is_paid": True,
         "user_id": p1_id
     })
     
-    # 7. Verify bill is CLOSED
+    # 6. Verify bill status is now PAID (others paid)
+    bill_paid = client.get(f"/bills/{bill_id}").json()
+    assert bill_paid["status"] == "paid"
+    assert bill_paid["is_closed"] is False
+    
+    # 7. Owner finalizes the bill
+    client.post(f"/bills/{bill_id}/close", json={
+        "user_id": owner_id
+    })
+    
+    # 8. Verify bill is CLOSED
     final_bill = client.get(f"/bills/{bill_id}").json()
+    assert final_bill["status"] == "closed"
     assert final_bill["is_closed"] is True
+    
+    # Verify owner is now marked as paid
+    owner_final = next(p for p in final_bill["participants"] if p["user_id"] == owner_id)
+    assert owner_final["is_paid"] is True

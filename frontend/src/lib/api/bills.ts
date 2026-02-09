@@ -97,8 +97,10 @@ export async function getUserBills(
   return response.data;
 }
 
-export async function closeBill(billId: number): Promise<Bill> {
-  const response = await apiClient.patch<Bill>(`/bills/${billId}/close`);
+export async function closeBill(billId: number, userId: number): Promise<BillDetail> {
+  const response = await apiClient.post<BillDetail>(`/bills/${billId}/close`, {
+    user_id: userId
+  });
   return response.data;
 }
 

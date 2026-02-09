@@ -18,6 +18,7 @@ class BillResponse(BaseModel):
     payment_details: str | None
     is_closed: bool
     split_type: str
+    status: str
     unallocated_sum: float
     created_at: datetime
     participants_count: int
@@ -82,6 +83,7 @@ class BillDetailResponse(BaseModel):
     payment_details: str | None
     is_closed: bool
     split_type: str
+    status: str
     unallocated_sum: float
     created_at: datetime
     items: list[BillItemResponse]

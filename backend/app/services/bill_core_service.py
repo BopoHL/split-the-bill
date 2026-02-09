@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from app.repositories.bill_repo import BillRepository
 from app.repositories.user_repo import UserRepository
-from app.models import Bill, BillUser
+from app.models import Bill, BillUser, BillStatus
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillCreate, BillResponse, BillDetailResponse, BillItemResponse, BillParticipantResponse
 from app.services.validator import BillValidator
@@ -45,6 +45,7 @@ class BillCoreService:
             payment_details=created_bill.payment_details,
             is_closed=created_bill.is_closed,
             split_type=created_bill.split_type,
+            status=created_bill.status,
             unallocated_sum=from_tiins(created_bill.unallocated_sum),
             created_at=created_bill.created_at,
             participants_count=participants_count
@@ -64,6 +65,7 @@ class BillCoreService:
             payment_details=bill.payment_details,
             is_closed=bill.is_closed,
             split_type=bill.split_type,
+            status=bill.status,
             unallocated_sum=from_tiins(bill.unallocated_sum),
             created_at=bill.created_at,
             items=[BillItemResponse(
@@ -94,6 +96,7 @@ class BillCoreService:
                 payment_details=bill.payment_details,
                 is_closed=bill.is_closed,
                 split_type=bill.split_type,
+                status=bill.status,
                 unallocated_sum=from_tiins(bill.unallocated_sum),
                 created_at=bill.created_at,
                 participants_count=participants_count

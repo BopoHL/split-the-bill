@@ -55,6 +55,7 @@ export const translations = {
       paymentCard: 'Payment Card',
       paidLabel: '(Paid)',
       statusClosed: 'Closed',
+      statusPaid: 'Ready to Close',
       statusActive: 'Active',
       guestRole: 'Guest',
       creatorRole: 'Creator',
@@ -70,6 +71,7 @@ export const translations = {
       removeParticipantAlert: 'Are you sure you want to remove this participant?',
       noItemsAdded: 'No items added yet',
       assign: 'Assign',
+      confirmAndClose: 'Confirm payments and close bill',
     },
     landing: {
       title: 'Split The Bill',
@@ -133,6 +135,7 @@ export const translations = {
       paymentCard: 'Карта для оплаты',
       paidLabel: '(Оплачено)',
       statusClosed: 'Закрыт',
+      statusPaid: 'Оплачен',
       statusActive: 'Активен',
       guestRole: 'Гость',
       creatorRole: 'Создатель',
@@ -148,6 +151,7 @@ export const translations = {
       removeParticipantAlert: 'Вы уверены, что хотите удалить этого участника?',
       noItemsAdded: 'Позиции еще не добавлены',
       assign: 'Назначить',
+      confirmAndClose: 'Подтвердить оплаты и закрыть счет',
     },
     landing: {
       title: 'Split The Bill',
@@ -211,6 +215,7 @@ export const translations = {
       paymentCard: 'To\'lov kartasi',
       paidLabel: '(To\'langan)',
       statusClosed: 'Yopilgan',
+      statusPaid: 'To\'langan',
       statusActive: 'Faol',
       guestRole: 'Mehmon',
       creatorRole: 'Yaratuvchi',
@@ -226,6 +231,7 @@ export const translations = {
       removeParticipantAlert: 'Ushbu ishtirokchini olib tashlamoqchimisiz?',
       noItemsAdded: 'Hozircha mahsulotlar qo\'shilmagan',
       assign: 'Tayinlash',
+      confirmAndClose: 'To\'lovlarni tasdiqlash va hisobni yopish',
     },
     landing: {
       title: 'Split The Bill',

@@ -150,8 +150,16 @@ async def bill_events(bill_id: int):
         }
     )
 
-@router.post("/{bill_id}/reactions")
 def send_reaction(bill_id: int, reaction: ReactionCreate):
     """Broadcast a reaction to all bill participants"""
     notifier.broadcast(bill_id, f"REACTION:{reaction.user_id}:{reaction.emoji}")
     return {"status": "ok"}
+
+@router.post("/{bill_id}/close", response_model=BillDetailResponse)
+def confirm_and_close_bill(
+    bill_id: int,
+    close_data: BillParticipantRemove,
+    service: BillParticipantService = Depends(get_bill_participant_service)
+):
+    """Finalize payments and close the bill (Owner only)"""
+    return service.confirm_and_close_bill(bill_id, close_data.user_id)

@@ -1,6 +1,6 @@
 'use client';
 
-import { BillDetail } from '@/types/api';
+import { BillDetail, BillStatus } from '@/types/api';
 import { formatCurrency } from '@/lib/utils/currency';
 import { Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
@@ -58,7 +58,17 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent/5 rounded-full -ml-6 -mb-6" />
       
       <div className="relative z-10 text-center">
-        {bill.is_closed && (
+        {bill.status === BillStatus.PAID && (
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-orange-500/20"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            {t('bill.statusPaid')}
+          </motion.div>
+        )}
+        {bill.status === BillStatus.CLOSED && (
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

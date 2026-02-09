@@ -2,7 +2,7 @@ import logging
 from fastapi import HTTPException
 from app.repositories.bill_repo import BillRepository
 from app.repositories.user_repo import UserRepository
-from app.models import BillUser, SplitType
+from app.models import BillUser, SplitType, BillStatus
 from app.utils.currency import to_tiins, from_tiins
 from app.schemas.bill_schemas import BillParticipantCreate, BillParticipantResponse, BillParticipantPaymentUpdate, BillDetailResponse, BillItemResponse
 from app.services.validator import BillValidator
@@ -77,12 +77,20 @@ class BillParticipantService:
         participant.is_paid = payment_data.is_paid
         self.bill_repo.session.add(participant)
 
-        # Check if all participants have paid and the bill is fully allocated
+        # Check if all other participants (except owner) have paid
         if payment_data.is_paid:
             all_participants = self.bill_repo.get_participants_by_bill_id(bill_id)
-            if bill.unallocated_sum == 0 and all(p.is_paid for p in all_participants):
-                bill.is_closed = True
-                self.bill_repo.session.add(bill)
+            others_paid = all(p.is_paid for p in all_participants if p.user_id != bill.owner_id)
+            
+            if bill.unallocated_sum == 0 and others_paid:
+                if any(p.user_id == bill.owner_id and not p.is_paid for p in all_participants):
+                    bill.status = BillStatus.PAID
+                    self.bill_repo.session.add(bill)
+                elif all(p.is_paid for p in all_participants):
+                    # Fallback in case owner also paid via normal route
+                    bill.status = BillStatus.CLOSED
+                    bill.is_closed = True
+                    self.bill_repo.session.add(bill)
 
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
@@ -168,6 +176,27 @@ class BillParticipantService:
             
         return self.map_to_response(created_participant)
 
+    def confirm_and_close_bill(self, bill_id: int, user_id: int) -> BillDetailResponse:
+        bill = self.validator.get_bill_or_404(bill_id)
+        if bill.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="Only owner can finalize the bill")
+        
+        participant = self.bill_repo.get_participant_by_bill_and_user(bill_id, user_id)
+        if not participant:
+            raise HTTPException(status_code=404, detail="Owner is not a participant in this bill")
+        
+        participant.is_paid = True
+        bill.is_closed = True
+        bill.status = BillStatus.CLOSED
+        
+        self.bill_repo.session.add(participant)
+        self.bill_repo.session.add(bill)
+        self.bill_repo.session.commit()
+        
+        notifier.broadcast(bill_id, "REFRESH")
+        
+        return self._get_bill_details_response(bill_id)
+
     def _get_bill_details_response(self, bill_id: int) -> BillDetailResponse:
         bill = self.validator.get_bill_or_404(bill_id)
         items = self.bill_repo.get_items_by_bill_id(bill_id)
@@ -181,6 +210,7 @@ class BillParticipantService:
             payment_details=bill.payment_details,
             is_closed=bill.is_closed,
             split_type=bill.split_type,
+            status=bill.status,
             unallocated_sum=from_tiins(bill.unallocated_sum),
             created_at=bill.created_at,
             items=[BillItemResponse(

@@ -1,14 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { BillDetail, SplitType, User } from '@/types/api';
+import { BillDetail, SplitType, User, BillStatus } from '@/types/api';
 import { formatCurrency, displayToAmount } from '@/lib/utils/currency';
 import Button from '@/components/ui/Button';
-import { Plus, Users, Trash2 } from 'lucide-react';
+import { Plus, Users, Trash2, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { addBillParticipant, addBillItem, deleteBillItem, assignAmount, updatePaymentStatus, deleteBillParticipant, splitRemainder, generateTelegramShareLink } from '@/lib/api/bills';
+import { 
+  addBillParticipant, 
+  addBillItem, 
+  deleteBillItem, 
+  assignAmount, 
+  updatePaymentStatus, 
+  deleteBillParticipant, 
+  splitRemainder, 
+  generateTelegramShareLink,
+  closeBill
+} from '@/lib/api/bills';
 import { shareLink } from '@/lib/telegram/init';
 import BillOverview from './BillOverview';
 import YouShareBlock from './YouShareBlock';
@@ -186,6 +196,22 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       setLoading(false);
     }
   };
+  
+  const handleCloseBill = async () => {
+    if (!currentUser) return;
+    if (!confirm(t('bill.confirmPaymentAlert'))) return;
+    
+    try {
+      setLoading(true);
+      const updatedBill = await closeBill(bill.id, currentUser.id);
+      setBill(updatedBill);
+    } catch (e) {
+      console.error(e);
+      alert(t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAssignAmount = async (participantId: number, amount: number) => {
     try {
@@ -229,6 +255,26 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
           loading={loading} 
           hideAction={true}
         />
+      )}
+
+      {bill.status === BillStatus.PAID && currentUser?.id === bill.owner_id && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="px-1"
+        >
+          <Button 
+            className="w-full py-4 text-lg bg-green-500 hover:bg-green-600 text-white shadow-lifted border-none" 
+            onClick={handleCloseBill}
+            disabled={loading}
+          >
+            <CheckCircle2 className="w-6 h-6 mr-2" />
+            {t('bill.confirmAndClose')}
+          </Button>
+          <p className="text-center text-xs text-ink/40 mt-3 px-4">
+            {t('bill.clickAfterTransfer')}
+          </p>
+        </motion.div>
       )}
 
       {/* Participants Section */}

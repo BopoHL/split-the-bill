@@ -18,6 +18,12 @@ export enum SplitType {
   EQUALLY = 'equally',
 }
 
+export enum BillStatus {
+  OPEN = 'open',
+  PAID = 'paid',
+  CLOSED = 'closed',
+}
+
 export interface Bill {
   id: number;
   owner_id: number;
@@ -26,6 +32,7 @@ export interface Bill {
   payment_details: string | null;
   participants_count: number;
   is_closed: boolean;
+  status: BillStatus;
   created_at: string;
   split_type: SplitType;
   unallocated_sum: number;
