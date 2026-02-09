@@ -76,6 +76,14 @@ class BillParticipantService:
 
         participant.is_paid = payment_data.is_paid
         self.bill_repo.session.add(participant)
+
+        # Check if all participants have paid and the bill is fully allocated
+        if payment_data.is_paid:
+            all_participants = self.bill_repo.get_participants_by_bill_id(bill_id)
+            if bill.unallocated_sum == 0 and all(p.is_paid for p in all_participants):
+                bill.is_closed = True
+                self.bill_repo.session.add(bill)
+
         self.bill_repo.session.commit()
         self.bill_repo.session.refresh(participant)
 

@@ -58,6 +58,16 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent/5 rounded-full -ml-6 -mb-6" />
       
       <div className="relative z-10 text-center">
+        {bill.is_closed && (
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-green-500/20"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            {t('bill.statusClosed')}
+          </motion.div>
+        )}
         <p className="text-ink/60 uppercase tracking-widest text-xs font-bold mb-1">{t('bill.totalBill')}</p>
         <div className="text-4xl font-bold text-accent font-handwritten">
           {formatCurrency(totalAmount)}

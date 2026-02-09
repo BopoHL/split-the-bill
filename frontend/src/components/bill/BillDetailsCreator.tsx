@@ -235,22 +235,24 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
-          <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="text-accent border-accent/20 hover:bg-accent/5"
-              onClick={() => {
-                const link = generateTelegramShareLink(bill.id, bill.title || '');
-                shareLink(link);
-              }}
-            >
-              <Users className="w-4 h-4 mr-1" /> {t('common.invite')}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
-              <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
-            </Button>
-          </div>
+          {!bill.is_closed && (
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-accent border-accent/20 hover:bg-accent/5"
+                onClick={() => {
+                  const link = generateTelegramShareLink(bill.id, bill.title || '');
+                  shareLink(link);
+                }}
+              >
+                <Users className="w-4 h-4 mr-1" /> {t('common.invite')}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
+                <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -267,16 +269,18 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
             />
           ))}
           
-          <motion.div
-            layout
-            onClick={() => setShowAddParticipant(true)}
-            className="p-3 rounded-lg border-2 border-dashed border-ink/20 flex flex-col items-center justify-center min-h-[90px] cursor-pointer hover:bg-black/5 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center mb-1">
-              <Plus className="w-4 h-4 text-ink/40" />
-            </div>
-            <span className="text-xs text-ink/40 font-medium">{t('bill.addParticipant')}</span>
-          </motion.div>
+          {!bill.is_closed && (
+            <motion.div
+              layout
+              onClick={() => setShowAddParticipant(true)}
+              className="p-3 rounded-lg border-2 border-dashed border-ink/20 flex flex-col items-center justify-center min-h-[90px] cursor-pointer hover:bg-black/5 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center mb-1">
+                <Plus className="w-4 h-4 text-ink/40" />
+              </div>
+              <span className="text-xs text-ink/40 font-medium">{t('bill.addParticipant')}</span>
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -284,9 +288,11 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.items')} ({bill.items.length})</h2>
-          <Button size="sm" variant="ghost" onClick={() => setShowAddItem(true)}>
-            <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
-          </Button>
+          {!bill.is_closed && (
+            <Button size="sm" variant="ghost" onClick={() => setShowAddItem(true)}>
+              <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
+            </Button>
+          )}
         </div>
 
         <div className="space-y-2">
