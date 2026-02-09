@@ -31,7 +31,6 @@ export interface Bill {
   title: string | null;
   payment_details: string | null;
   participants_count: number;
-  is_closed: boolean;
   status: BillStatus;
   created_at: string;
   split_type: SplitType;

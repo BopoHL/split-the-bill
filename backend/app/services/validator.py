@@ -13,8 +13,9 @@ class BillValidator:
         return bill
 
     def ensure_bill_open(self, bill: Bill):
-        if bill.is_closed:
-            raise HTTPException(status_code=400, detail="Action not allowed on a closed bill")
+        from app.models import BillStatus
+        if bill.status != BillStatus.OPEN:
+            raise HTTPException(status_code=400, detail="Action not allowed on this bill state")
 
     def ensure_owner(self, bill: Bill, user_id: int):
         if bill.owner_id != user_id:

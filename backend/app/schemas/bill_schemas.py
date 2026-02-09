@@ -16,7 +16,6 @@ class BillResponse(BaseModel):
     total_sum: float
     title: str | None
     payment_details: str | None
-    is_closed: bool
     split_type: str
     status: str
     unallocated_sum: float
@@ -81,7 +80,6 @@ class BillDetailResponse(BaseModel):
     total_sum: float
     title: str | None
     payment_details: str | None
-    is_closed: bool
     split_type: str
     status: str
     unallocated_sum: float

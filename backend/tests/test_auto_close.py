@@ -27,7 +27,6 @@ def test_bill_auto_close_on_full_payment(client: TestClient):
     
     # Verify initial state
     bill = client.get(f"/bills/{bill_id}").json()
-    assert bill["is_closed"] is False
     assert bill["unallocated_sum"] == 0
     
     participants = bill["participants"]
@@ -43,7 +42,6 @@ def test_bill_auto_close_on_full_payment(client: TestClient):
     # 6. Verify bill status is now PAID (others paid)
     bill_paid = client.get(f"/bills/{bill_id}").json()
     assert bill_paid["status"] == "paid"
-    assert bill_paid["is_closed"] is False
     
     # 7. Owner finalizes the bill
     client.post(f"/bills/{bill_id}/close", json={
@@ -53,7 +51,6 @@ def test_bill_auto_close_on_full_payment(client: TestClient):
     # 8. Verify bill is CLOSED
     final_bill = client.get(f"/bills/{bill_id}").json()
     assert final_bill["status"] == "closed"
-    assert final_bill["is_closed"] is True
     
     # Verify owner is now marked as paid
     owner_final = next(p for p in final_bill["participants"] if p["user_id"] == owner_id)

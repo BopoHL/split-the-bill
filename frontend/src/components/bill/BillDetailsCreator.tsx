@@ -281,7 +281,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
-          {!bill.is_closed && (
+          {bill.status !== BillStatus.CLOSED && (
             <div className="flex items-center gap-2">
               <Button 
                 size="sm" 
@@ -312,10 +312,11 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
               onDelete={handleDeleteParticipant}
               onTogglePayment={handleTogglePaymentStatus}
               onAssignAmount={handleAssignAmount}
+              isClosed={bill.status === BillStatus.CLOSED}
             />
           ))}
           
-          {!bill.is_closed && (
+          {bill.status !== BillStatus.CLOSED && (
             <motion.div
               layout
               onClick={() => setShowAddParticipant(true)}
@@ -334,7 +335,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.items')} ({bill.items.length})</h2>
-          {!bill.is_closed && (
+          {bill.status !== BillStatus.CLOSED && (
             <Button size="sm" variant="ghost" onClick={() => setShowAddItem(true)}>
               <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
             </Button>

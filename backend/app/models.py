@@ -57,7 +57,6 @@ class Bill(TimestampModel, table=True):
     unallocated_sum: int = Field(default=0, sa_type=BigInteger, description="Remaining unallocated amount")
     title: Optional[str] = None
     payment_details: Optional[str] = Field(description="Payment details like card number")
-    is_closed: bool = Field(default=False)
     split_type: str = Field(default=SplitType.MANUAL)
     status: str = Field(default=BillStatus.OPEN)
     

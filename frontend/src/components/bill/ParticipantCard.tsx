@@ -14,6 +14,7 @@ interface ParticipantCardProps {
   onTogglePayment?: (id: number, currentPaid: boolean) => void;
   onAssignAmount?: (id: number, amount: number) => Promise<void>;
   isCreatorView?: boolean;
+  isClosed?: boolean;
 }
 
 import { useState } from 'react';
@@ -27,7 +28,8 @@ export default function ParticipantCard({
   onDelete,
   onTogglePayment,
   onAssignAmount,
-  isCreatorView
+  isCreatorView,
+  isClosed
 }: ParticipantCardProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -105,7 +107,7 @@ export default function ParticipantCard({
           </p>
         </div>
 
-        {isCreatorView && (
+        {isCreatorView && !isClosed && (
           <div className="flex flex-col items-end gap-1">
             {isOwner ? (
               onAssignAmount && (
@@ -192,7 +194,7 @@ export default function ParticipantCard({
               exit={{ x: -20, opacity: 0 }}
               className="flex items-center gap-2"
             >
-              {!p.is_paid && p.allocated_amount > 0 && isCreatorView && (
+              {!p.is_paid && p.allocated_amount > 0 && isCreatorView && !isClosed && (
                 <button
                   onClick={() => {
                     const confirmCancel = confirm(t('bill.cancelAllocationAlert') || 'Cancel allocation?');

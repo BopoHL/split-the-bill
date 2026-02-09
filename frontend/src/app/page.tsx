@@ -7,7 +7,7 @@ import CreateBillModal from '@/components/bill/CreateBillModal';
 import BillCard from '@/components/dashboard/BillCard';
 import Button from '@/components/ui/Button';
 import { motion } from 'framer-motion';
-import { Bill } from '@/types/api';
+import { Bill, BillStatus } from '@/types/api';
 import { createBill, addBillItem, addBillParticipant, getUserBills } from '@/lib/api/bills';
 import FloatingCreateButton from '@/components/ui/FloatingCreateButton';
 import { useRouter } from 'next/navigation';
@@ -77,7 +77,7 @@ export default function HomePage() {
 
       const bills = await getUserBills(currentUser.id, page, PAGE_SIZE);
       
-      const filtered = bills.filter(b => tab === 'active' ? !b.is_closed : b.is_closed);
+      const filtered = bills.filter(b => tab === 'active' ? b.status !== BillStatus.CLOSED : b.status === BillStatus.CLOSED);
       const hasMore = bills.length === PAGE_SIZE;
 
       if (tab === 'active') {
@@ -110,8 +110,8 @@ export default function HomePage() {
         
         const bills = await getUserBills(currentUser.id, 1, PAGE_SIZE);
         
-        setActiveBills(bills.filter(b => !b.is_closed));
-        setClosedBills(bills.filter(b => b.is_closed));
+        setActiveBills(bills.filter(b => b.status !== BillStatus.CLOSED));
+        setClosedBills(bills.filter(b => b.status === BillStatus.CLOSED));
         
         const hasMore = bills.length === PAGE_SIZE;
         setHasMoreActive(hasMore);

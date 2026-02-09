@@ -89,7 +89,6 @@ class BillParticipantService:
                 elif all(p.is_paid for p in all_participants):
                     # Fallback in case owner also paid via normal route
                     bill.status = BillStatus.CLOSED
-                    bill.is_closed = True
                     self.bill_repo.session.add(bill)
 
         self.bill_repo.session.commit()
@@ -186,7 +185,6 @@ class BillParticipantService:
             raise HTTPException(status_code=404, detail="Owner is not a participant in this bill")
         
         participant.is_paid = True
-        bill.is_closed = True
         bill.status = BillStatus.CLOSED
         
         self.bill_repo.session.add(participant)
@@ -208,7 +206,6 @@ class BillParticipantService:
             total_sum=from_tiins(bill.total_sum),
             title=bill.title,
             payment_details=bill.payment_details,
-            is_closed=bill.is_closed,
             split_type=bill.split_type,
             status=bill.status,
             unallocated_sum=from_tiins(bill.unallocated_sum),

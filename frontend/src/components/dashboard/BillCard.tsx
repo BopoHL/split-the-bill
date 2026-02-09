@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Users, ChevronRight, CheckCircle2, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/currency';
-import type { Bill } from '@/types/api';
+import { Bill, BillStatus } from '@/types/api';
 import { useRouter } from 'next/navigation';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -22,7 +22,7 @@ export default function BillCard({ bill, role }: BillCardProps) {
   };
 
   const participantCount = bill.participants_count || 0;
-  const isPaid = bill.is_closed;
+  const isPaid = bill.status === BillStatus.CLOSED;
 
   return (
     <motion.div
@@ -66,7 +66,7 @@ export default function BillCard({ bill, role }: BillCardProps) {
           <p className="font-bold text-lg text-ink">
             {formatCurrency(bill.total_sum)}
           </p>
-          {bill.unallocated_sum > 0 && !bill.is_closed && (
+          {bill.unallocated_sum > 0 && bill.status !== BillStatus.CLOSED && (
             <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
               {t('bill.left', { amount: formatCurrency(bill.unallocated_sum) })}
             </p>

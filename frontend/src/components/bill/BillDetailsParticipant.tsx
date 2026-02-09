@@ -74,6 +74,7 @@ export default function BillDetailsParticipant({ bill, currentUser, setBill, rea
               participant={p}
               isOwner={p.user_id === bill.owner_id}
               reaction={p.user_id ? reactions[p.user_id] : undefined}
+              isClosed={bill.status === 'closed'}
             />
           ))}
         </div>
