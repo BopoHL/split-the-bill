@@ -14,17 +14,13 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-import os
-from dotenv import load_dotenv
 from sqlmodel import SQLModel
 from app import models  # Ensure all models are imported
+from app.database import DATABASE_URL
 
-# Load environment variables
-load_dotenv()
-
-# Get database URL from environment or fallback to alembic.ini value
+# Get database URL from application logic
 def get_url():
-    return os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+    return DATABASE_URL
 
 target_metadata = SQLModel.metadata
 
