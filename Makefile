@@ -1,4 +1,5 @@
-.PHONY: up down stop start logs ps build restart shell-backend shell-frontend
+.PHONY: up down stop start logs ps build restart shell-backend shell-frontend \
+        backend-db-migrate backend-db-rollback backend-db-upgrade backend-test
 
 up:
 	docker compose up --build -d
@@ -24,3 +25,16 @@ shell-backend:
 
 shell-frontend:
 	docker compose exec frontend /bin/sh
+
+backend-db-migrate:
+	docker compose exec backend alembic revision --autogenerate -m "$(msg)"
+	docker compose exec backend alembic upgrade head
+
+backend-db-rollback:
+	docker compose exec backend alembic downgrade -1
+
+backend-db-upgrade:
+	docker compose exec backend alembic upgrade head
+
+backend-test:
+	docker compose exec backend pytest tests/
