@@ -5,10 +5,10 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-    restart: always
+      - DB_HOST=${DB_HOST:-db}
     networks:
       - app-network
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -16,7 +16,6 @@ services:
 
   db:
     image: postgres:17-alpine
-    restart: always
     profiles: ["dev"]
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
@@ -33,6 +32,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    restart: always
 
   frontend:
     build:
@@ -68,6 +68,7 @@ services:
           - nginx
     ports:
       - "80:80"
+    restart: always
     depends_on:
       - backend
       - frontend
@@ -84,13 +85,13 @@ services:
           - nginx
     ports:
       - "80:80"
+    restart: always
     depends_on:
       - backend
       - frontend
 
   cloudflared:
     image: cloudflare/cloudflared:latest
-    restart: always
     profiles: ["prod"]
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
@@ -98,6 +99,7 @@ services:
       - tunnel
       - --no-autoupdate
       - run
+    restart: always
     depends_on:
       - nginx-prod
     networks:
