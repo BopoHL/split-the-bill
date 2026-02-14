@@ -44,8 +44,6 @@ class BillParticipantService:
                 notifier.broadcast(bill_id, "REFRESH")
                 return result
         
-        # Default behavior: switch to manual if it wasn't equal (already set by default or manually)
-        # and return all participants
         bill.split_type = SplitType.MANUAL
         self.bill_repo.session.add(bill)
         self.bill_repo.session.commit()
@@ -77,7 +75,6 @@ class BillParticipantService:
         participant.is_paid = payment_data.is_paid
         self.bill_repo.session.add(participant)
 
-        # Check if all other participants (except owner) have paid
         if payment_data.is_paid:
             all_participants = self.bill_repo.get_participants_by_bill_id(bill_id)
             others_paid = all(p.is_paid for p in all_participants if p.user_id != bill.owner_id)
@@ -87,7 +84,6 @@ class BillParticipantService:
                     bill.status = BillStatus.PAID
                     self.bill_repo.session.add(bill)
                 elif all(p.is_paid for p in all_participants):
-                    # Fallback in case owner also paid via normal route
                     bill.status = BillStatus.CLOSED
                     self.bill_repo.session.add(bill)
 
@@ -104,29 +100,21 @@ class BillParticipantService:
         
         participant = self.validator.get_participant_or_404(participant_id, bill_id)
         
-        # Authorization: owner can remove anyone, or participant can remove themselves
-        is_owner = (bill.owner_id == requester_id)
-        is_self = (participant.user_id == requester_id)
-        
         if not (is_owner or is_self):
             raise HTTPException(status_code=403, detail="Not authorized to remove this participant")
             
-        # 1. Unassign items
         if participant.user_id:
             items = self.bill_repo.get_items_by_bill_id_and_participant(bill_id, participant.user_id)
             for item in items:
                 item.assigned_to_user_id = None
                 self.bill_repo.session.add(item)
         
-        # 2. Return amount to unallocated if manual
         if bill.split_type == SplitType.MANUAL:
             bill.unallocated_sum += participant.allocated_amount
             self.bill_repo.session.add(bill)
         
-        # 3. Delete participant
         self.bill_repo.delete_participant(participant)
         
-        # 4. Handle re-split if equal
         if bill.split_type == SplitType.EQUALLY:
             if self.split_service:
                 self.split_service.split_bill_equally(bill_id)
@@ -169,7 +157,6 @@ class BillParticipantService:
         
         notifier.broadcast(bill_id, "REFRESH")
         
-        # Ensure user relationship is loaded for the response
         if created_participant.user_id and not created_participant.user:
             created_participant.user = self.user_repo.get_by_id(created_participant.user_id)
             

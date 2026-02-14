@@ -20,26 +20,20 @@ logs-backend:
 logs-frontend:
 	docker compose logs -f frontend
 
-ps:
-	docker compose ps
-
-build:
-	docker compose build
-
 shell-backend:
 	docker compose exec backend /bin/bash
 
 shell-frontend:
 	docker compose exec frontend /bin/sh
-
-backend-db-migrate:
+	
+backend-db migrate:
 	docker compose exec backend alembic revision --autogenerate -m "$(msg)"
 
-backend-db-upgrade:
+backend-db upgrade:
 	docker compose exec backend alembic upgrade head
 
-backend-db-rollback:
+backend-db rollback:
 	docker compose exec backend alembic downgrade -1
 
-backend-test:
+backend test:
 	docker compose exec backend pytest tests/
