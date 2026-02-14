@@ -100,6 +100,9 @@ class BillParticipantService:
         
         participant = self.validator.get_participant_or_404(participant_id, bill_id)
         
+        is_owner = (bill.owner_id == requester_id)
+        is_self = (participant.user_id == requester_id)
+        
         if not (is_owner or is_self):
             raise HTTPException(status_code=403, detail="Not authorized to remove this participant")
             
