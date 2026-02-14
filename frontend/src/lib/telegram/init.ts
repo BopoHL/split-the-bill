@@ -23,7 +23,6 @@ export function initTelegramSDK(): TelegramWebApp | null {
                    (!window.Telegram?.WebApp || !window.Telegram.WebApp.initData);
 
   if (needsMock) {
-    console.log('Telegram WebApp SDK missing or uninitialized, injecting mock for development');
     
     const mockUser = {
       id: 960374691,

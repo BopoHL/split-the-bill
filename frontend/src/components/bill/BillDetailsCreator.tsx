@@ -282,22 +282,9 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-lg font-handwritten text-ink">{t('bill.participants')} ({bill.participants.length})</h2>
           {bill.status !== BillStatus.CLOSED && (
-            <div className="flex items-center gap-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-accent border-accent/20 hover:bg-accent/5"
-                onClick={() => {
-                  const link = generateTelegramShareLink(bill.id, bill.title || '');
-                  shareLink(link);
-                }}
-              >
-                <Users className="w-4 h-4 mr-1" /> {t('common.invite')}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
-                <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
-              </Button>
-            </div>
+            <Button size="sm" variant="ghost" onClick={() => setShowAddParticipant(true)}>
+              <Plus className="w-4 h-4 mr-1" /> {t('bill.addParticipant')}
+            </Button>
           )}
         </div>
 
@@ -319,13 +306,16 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
           {bill.status !== BillStatus.CLOSED && (
             <motion.div
               layout
-              onClick={() => setShowAddParticipant(true)}
-              className="p-3 rounded-lg border-2 border-dashed border-ink/20 flex flex-col items-center justify-center min-h-[90px] cursor-pointer hover:bg-black/5 transition-colors"
+              onClick={() => {
+                const link = generateTelegramShareLink(bill.id, bill.title || '');
+                shareLink(link);
+              }}
+              className="p-3 rounded-lg border-2 border-dashed border-accent/20 flex flex-col items-center justify-center min-h-[90px] cursor-pointer hover:bg-accent/5 transition-colors group"
             >
-              <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center mb-1">
-                <Plus className="w-4 h-4 text-ink/40" />
+              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center mb-1 group-hover:bg-accent/20 transition-colors">
+                <Users className="w-4 h-4 text-accent" />
               </div>
-              <span className="text-xs text-ink/40 font-medium">{t('bill.addParticipant')}</span>
+              <span className="text-xs text-accent font-medium">{t('bill.invitePerson')}</span>
             </motion.div>
           )}
         </div>
@@ -406,7 +396,7 @@ export default function BillDetailsCreator({ bill, setBill, currentUser, reactio
           />
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="ghost" onClick={() => setShowAddParticipant(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleAddParticipant} disabled={loading}>{t('common.add')}</Button>
+            <Button onClick={handleAddParticipant} disabled={loading}>{t('bill.addParticipant')}</Button>
           </div>
         </div>
       </Modal>

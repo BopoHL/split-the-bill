@@ -33,9 +33,6 @@ export default function RootLayout({
     const isTG = isTelegramWebApp();
     setIsTelegram(isTG);
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log(' Telegram Sync: isTG =', isTG);
-    }
 
     if (isTG) {
       // Initialize Telegram SDK
@@ -48,9 +45,6 @@ export default function RootLayout({
         
         // Get and sync user with backend
         const telegramUser = getTelegramUser();
-        if (process.env.NODE_ENV === 'development') {
-          console.log(' Telegram Sync: telegramUser =', telegramUser);
-        }
         if (telegramUser) {
           getUserByTelegramId(
             telegramUser.id,
@@ -59,9 +53,6 @@ export default function RootLayout({
             window.Telegram?.WebApp?.initData
           ).then(async (user) => {
             if (user) {
-              if (process.env.NODE_ENV === 'development') {
-                console.log(' Telegram Sync: Success, user =', user);
-              }
               setCurrentUser(user);
               
               // Handle startapp parameter (deep linking)
