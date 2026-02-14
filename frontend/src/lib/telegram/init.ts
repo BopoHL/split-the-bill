@@ -15,8 +15,11 @@ export function initTelegramSDK(): TelegramWebApp | null {
   const urlParams = new URLSearchParams(window.location.search);
   const urlInitData = urlParams.get('initData');
 
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   if (!window.Telegram?.WebApp) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || isLocalhost) {
       console.log('Telegram WebApp SDK not found, injection mock for development');
       
       const mockUser = {
@@ -140,8 +143,10 @@ export function getTelegramWebApp(): TelegramWebApp | null {
 export function isTelegramWebApp(): boolean {
   if (typeof window === 'undefined') return false;
   
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
   // In development, we allow running in a normal browser with a mock
-  if (process.env.NODE_ENV === 'development') return true;
+  if (process.env.NODE_ENV === 'development' || isLocalhost) return true;
   
   return !!(window.Telegram?.WebApp && window.Telegram.WebApp.initData);
 }
