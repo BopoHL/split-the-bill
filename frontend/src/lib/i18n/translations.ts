@@ -72,6 +72,7 @@ export const translations = {
       noItemsAdded: 'No items added yet',
       assign: 'Assign',
       confirmAndClose: 'Confirm payments and close bill',
+      userNotSync: 'User not synchronized. Please wait a few seconds or refresh the page.',
     },
     landing: {
       title: 'Split The Bill',
@@ -152,6 +153,7 @@ export const translations = {
       noItemsAdded: 'Позиции еще не добавлены',
       assign: 'Назначить',
       confirmAndClose: 'Подтвердить оплаты и закрыть счет',
+      userNotSync: 'Пользователь не синхронизирован. Пожалуйста, подождите несколько секунд или обновите страницу.',
     },
     landing: {
       title: 'Split The Bill',
@@ -232,6 +234,7 @@ export const translations = {
       noItemsAdded: 'Hozircha mahsulotlar qo\'shilmagan',
       assign: 'Tayinlash',
       confirmAndClose: 'To\'lovlarni tasdiqlash va hisobni yopish',
+      userNotSync: 'Foydalanuvchi sinxronizatsiya qilinmadi. Iltimos, bir necha soniya kuting yoki sahifani yangilang.',
     },
     landing: {
       title: 'Split The Bill',

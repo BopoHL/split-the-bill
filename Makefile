@@ -1,32 +1,32 @@
-.PHONY: up down ps restart logs logs-backend logs-frontend shell-backend shell-frontend \
+.PHONY: docker-up docker-down docker-ps docker-restart docker-logs docker-logs-backend docker-logs-frontend docker-shell-backend docker-shell-frontend \
         db-migrate db-upgrade db-rollback test-backend
 
-up:
+docker-up:
 	docker compose up --build -d
 
-down:
+docker-down:
 	docker compose down
 
-ps:
+docker-ps:
 	docker compose ps
 
-restart:
-	make down
-	make up
+docker-restart:
+	docker compose down
+	docker compose up --build -d
 
-logs:
+docker-logs:
 	docker compose logs -f
 
-logs-backend:
+docker-logs-backend:
 	docker compose logs -f backend-dev
 
-logs-frontend:
+docker-logs-frontend:
 	docker compose logs -f frontend-dev
 
-shell-backend:
+docker-shell-backend:
 	docker compose exec backend-dev /bin/bash
 
-shell-frontend:
+docker-shell-frontend:
 	docker compose exec frontend-dev /bin/sh
 
 db-migrate:

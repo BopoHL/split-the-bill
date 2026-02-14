@@ -22,14 +22,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { theme, setTheme, setCurrentUser, language } = useStore();
+  const { theme, setTheme, currentUser, setCurrentUser, language } = useStore();
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     // Check if running in Telegram
     const isTG = isTelegramWebApp();
     setIsTelegram(isTG);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log(' Telegram Sync: isTG =', isTG);
+    }
 
     if (isTG) {
       // Initialize Telegram SDK
@@ -42,6 +48,9 @@ export default function RootLayout({
         
         // Get and sync user with backend
         const telegramUser = getTelegramUser();
+        if (process.env.NODE_ENV === 'development') {
+          console.log(' Telegram Sync: telegramUser =', telegramUser);
+        }
         if (telegramUser) {
           getUserByTelegramId(
             telegramUser.id,
@@ -50,6 +59,9 @@ export default function RootLayout({
             window.Telegram?.WebApp?.initData
           ).then(async (user) => {
             if (user) {
+              if (process.env.NODE_ENV === 'development') {
+                console.log(' Telegram Sync: Success, user =', user);
+              }
               setCurrentUser(user);
               
               // Handle startapp parameter (deep linking)
@@ -67,7 +79,7 @@ export default function RootLayout({
               }
             }
           }).catch((error) => {
-            console.error('Failed to sync Telegram user in root:', error);
+            console.error(' Telegram Sync: FAILED', error);
           });
         }
       }
@@ -100,11 +112,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${caveat.variable} antialiased`}>
-        {isTelegram === null ? (
+        {!mounted || isTelegram === null ? (
           <div className="min-h-screen notebook-page flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
           </div>
-        ) : (isTelegram === false && !useStore.getState().currentUser) ? (
+        ) : (isTelegram === false && !currentUser) ? (
           <ExternalLanding />
         ) : (
           children

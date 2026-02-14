@@ -18,101 +18,103 @@ export function initTelegramSDK(): TelegramWebApp | null {
   const isLocalhost = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  if (!window.Telegram?.WebApp) {
-    if (process.env.NODE_ENV === 'development' || isLocalhost) {
-      console.log('Telegram WebApp SDK not found, injection mock for development');
-      
-      const mockUser = {
-        id: 960374691,
-        first_name: 'Leonid',
-        last_name: 'Voronin',
-        username: 'BopoH_L',
-        language_code: 'ru',
-        photo_url: 'https://t.me/i/userpic/320/Jf5Nm2OZPuxwxQdmCDahZyMrZ2K4IJFTopNW3dXIQOE.svg'
-      };
+  // Force mock if we are on localhost and there's no real initData, even if the script is loaded
+  const needsMock = (process.env.NODE_ENV === 'development' || isLocalhost) && 
+                   (!window.Telegram?.WebApp || !window.Telegram.WebApp.initData);
 
-      const mockInitData = urlInitData || `query_id=MOCK&user=${encodeURIComponent(JSON.stringify(mockUser))}&auth_date=${Math.floor(Date.now() / 1000)}&hash=mock_hash`;
+  if (needsMock) {
+    console.log('Telegram WebApp SDK missing or uninitialized, injecting mock for development');
+    
+    const mockUser = {
+      id: 960374691,
+      first_name: 'Leonid',
+      last_name: 'Voronin',
+      username: 'BopoH_L',
+      language_code: 'ru',
+      photo_url: 'https://t.me/i/userpic/320/Jf5Nm2OZPuxwxQdmCDahZyMrZ2K4IJFTopNW3dXIQOE.svg'
+    };
 
-      window.Telegram = {
-        WebApp: {
-          initData: mockInitData,
-          initDataUnsafe: {
-            user: mockUser,
-            auth_date: Math.floor(Date.now() / 1000),
-            hash: 'mock_hash',
-            start_param: urlParams.get('startapp') || undefined
-          },
-          version: '7.0',
-          platform: 'tdesktop',
-          colorScheme: 'light',
-          themeParams: {
-            bg_color: '#fff9db',
-            text_color: '#000000',
-            button_color: '#fcc419',
-            button_text_color: '#000000'
-          },
-          isExpanded: true,
-          viewportHeight: 600,
-          viewportStableHeight: 600,
-          headerColor: '#fff9db',
-          backgroundColor: '#fff9db',
-          isClosingConfirmationEnabled: false,
-          BackButton: {
-            isVisible: false,
-            onClick: () => {},
-            offClick: () => {},
-            show: () => {},
-            hide: () => {}
-          },
-          MainButton: {
-            text: 'CONTINUE',
-            color: '#fcc419',
-            textColor: '#000000',
-            isVisible: false,
-            isActive: true,
-            isProgressVisible: false,
-            setText: () => {},
-            onClick: () => {},
-            offClick: () => {},
-            show: () => {},
-            hide: () => {},
-            enable: () => {},
-            disable: () => {},
-            showProgress: () => {},
-            hideProgress: () => {},
-            setParams: () => {}
-          },
-          HapticFeedback: {
-            impactOccurred: () => {},
-            notificationOccurred: () => {},
-            selectionChanged: () => {}
-          },
-          close: () => console.log('Mock WebApp closed'),
-          ready: () => {},
-          expand: () => {},
-          enableClosingConfirmation: () => {},
-          disableClosingConfirmation: () => {},
-          onEvent: () => {},
-          offEvent: () => {},
-          sendData: () => {},
-          openLink: () => {},
-          openTelegramLink: () => {},
-          openInvoice: () => {},
-          showPopup: () => {},
-          showAlert: () => {},
-          showConfirm: () => {},
-          showScanQrPopup: () => {},
-          closeScanQrPopup: () => {},
-          readTextFromClipboard: () => {},
-          requestWriteAccess: () => {},
-          requestContact: () => {},
-          switchInlineQuery: () => {}
-        } as TelegramWebApp
-      };
-    } else {
-      console.warn('Telegram WebApp SDK not found');
-      return null;
-    }
+    const mockInitData = urlInitData || `query_id=MOCK&user=${encodeURIComponent(JSON.stringify(mockUser))}&auth_date=${Math.floor(Date.now() / 1000)}&hash=mock_hash`;
+
+    window.Telegram = {
+      WebApp: {
+        initData: mockInitData,
+        initDataUnsafe: {
+          user: mockUser,
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: 'mock_hash',
+          start_param: urlParams.get('startapp') || undefined
+        },
+        version: '7.0',
+        platform: 'tdesktop',
+        colorScheme: 'light',
+        themeParams: {
+          bg_color: '#fff9db',
+          text_color: '#000000',
+          button_color: '#fcc419',
+          button_text_color: '#000000'
+        },
+        isExpanded: true,
+        viewportHeight: 600,
+        viewportStableHeight: 600,
+        headerColor: '#fff9db',
+        backgroundColor: '#fff9db',
+        isClosingConfirmationEnabled: false,
+        BackButton: {
+          isVisible: false,
+          onClick: () => {},
+          offClick: () => {},
+          show: () => {},
+          hide: () => {}
+        },
+        MainButton: {
+          text: 'CONTINUE',
+          color: '#fcc419',
+          textColor: '#000000',
+          isVisible: false,
+          isActive: true,
+          isProgressVisible: false,
+          setText: () => {},
+          onClick: () => {},
+          offClick: () => {},
+          show: () => {},
+          hide: () => {},
+          enable: () => {},
+          disable: () => {},
+          showProgress: () => {},
+          hideProgress: () => {},
+          setParams: () => {}
+        },
+        HapticFeedback: {
+          impactOccurred: () => {},
+          notificationOccurred: () => {},
+          selectionChanged: () => {}
+        },
+        close: () => console.log('Mock WebApp closed'),
+        ready: () => {},
+        expand: () => {},
+        enableClosingConfirmation: () => {},
+        disableClosingConfirmation: () => {},
+        onEvent: () => {},
+        offEvent: () => {},
+        sendData: () => {},
+        openLink: () => {},
+        openTelegramLink: () => {},
+        openInvoice: () => {},
+        showPopup: () => {},
+        showAlert: () => {},
+        showConfirm: () => {},
+        showScanQrPopup: () => {},
+        closeScanQrPopup: () => {},
+        readTextFromClipboard: () => {},
+        requestWriteAccess: () => {},
+        requestContact: () => {},
+        switchInlineQuery: () => {}
+      } as any
+    };
+  } else if (!window.Telegram?.WebApp) {
+    console.warn('Telegram WebApp SDK not found');
+    return null;
   }
 
   webApp = window.Telegram.WebApp;
@@ -121,8 +123,10 @@ export function initTelegramSDK(): TelegramWebApp | null {
   webApp.ready();
   webApp.expand();
   
-  // Set header color to match theme
-  webApp.headerColor = webApp.themeParams.bg_color || '#fff9db';
+  // Set header color to match theme if supported
+  if ((webApp as any).setHeaderColor) {
+    webApp.headerColor = webApp.themeParams.bg_color || '#fff9db';
+  }
   
   return webApp;
 }

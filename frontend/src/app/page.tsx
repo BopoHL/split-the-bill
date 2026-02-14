@@ -160,7 +160,7 @@ export default function HomePage() {
 
   const handleBillSubmit = async (data: BillSubmitData) => {
     if (!currentUser) {
-      alert(t('common.error') || 'User not synchronized. Please wait or refresh.');
+      alert(t('bill.userNotSync') || 'User not synchronized. Please wait a few seconds or refresh the page.');
       return;
     }
     try {
