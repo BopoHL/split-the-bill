@@ -11,9 +11,105 @@ export function initTelegramSDK(): TelegramWebApp | null {
     return null;
   }
 
+  // Get initData from URL for local testing if provided
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlInitData = urlParams.get('initData');
+
   if (!window.Telegram?.WebApp) {
-    console.warn('Telegram WebApp SDK not found');
-    return null;
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Telegram WebApp SDK not found, injection mock for development');
+      
+      const mockUser = {
+        id: 960374691,
+        first_name: 'Leonid',
+        last_name: 'Voronin',
+        username: 'BopoH_L',
+        language_code: 'ru',
+        photo_url: 'https://t.me/i/userpic/320/Jf5Nm2OZPuxwxQdmCDahZyMrZ2K4IJFTopNW3dXIQOE.svg'
+      };
+
+      const mockInitData = urlInitData || `query_id=MOCK&user=${encodeURIComponent(JSON.stringify(mockUser))}&auth_date=${Math.floor(Date.now() / 1000)}&hash=mock_hash`;
+
+      window.Telegram = {
+        WebApp: {
+          initData: mockInitData,
+          initDataUnsafe: {
+            user: mockUser,
+            auth_date: Math.floor(Date.now() / 1000),
+            hash: 'mock_hash',
+            start_param: urlParams.get('startapp') || undefined
+          },
+          version: '7.0',
+          platform: 'tdesktop',
+          colorScheme: 'light',
+          themeParams: {
+            bg_color: '#fff9db',
+            text_color: '#000000',
+            button_color: '#fcc419',
+            button_text_color: '#000000'
+          },
+          isExpanded: true,
+          viewportHeight: 600,
+          viewportStableHeight: 600,
+          headerColor: '#fff9db',
+          backgroundColor: '#fff9db',
+          isClosingConfirmationEnabled: false,
+          BackButton: {
+            isVisible: false,
+            onClick: () => {},
+            offClick: () => {},
+            show: () => {},
+            hide: () => {}
+          },
+          MainButton: {
+            text: 'CONTINUE',
+            color: '#fcc419',
+            textColor: '#000000',
+            isVisible: false,
+            isActive: true,
+            isProgressVisible: false,
+            setText: () => {},
+            onClick: () => {},
+            offClick: () => {},
+            show: () => {},
+            hide: () => {},
+            enable: () => {},
+            disable: () => {},
+            showProgress: () => {},
+            hideProgress: () => {},
+            setParams: () => {}
+          },
+          HapticFeedback: {
+            impactOccurred: () => {},
+            notificationOccurred: () => {},
+            selectionChanged: () => {}
+          },
+          close: () => console.log('Mock WebApp closed'),
+          ready: () => {},
+          expand: () => {},
+          enableClosingConfirmation: () => {},
+          disableClosingConfirmation: () => {},
+          onEvent: () => {},
+          offEvent: () => {},
+          sendData: () => {},
+          openLink: () => {},
+          openTelegramLink: () => {},
+          openInvoice: () => {},
+          showPopup: () => {},
+          showAlert: () => {},
+          showConfirm: () => {},
+          showScanQrPopup: () => {},
+          closeScanQrPopup: () => {},
+          readTextFromClipboard: () => {},
+          requestWriteAccess: () => {},
+          requestContact: () => {},
+          switchInlineQuery: () => {}
+        } as TelegramWebApp
+      };
+    } else {
+      console.warn('Telegram WebApp SDK not found');
+      return null;
+    }
   }
 
   webApp = window.Telegram.WebApp;
@@ -44,8 +140,9 @@ export function getTelegramWebApp(): TelegramWebApp | null {
 export function isTelegramWebApp(): boolean {
   if (typeof window === 'undefined') return false;
   
-  // Checking for initData is more reliable than just checking for window.Telegram.WebApp
-  // because the script might be loaded but we might be in a regular browser
+  // In development, we allow running in a normal browser with a mock
+  if (process.env.NODE_ENV === 'development') return true;
+  
   return !!(window.Telegram?.WebApp && window.Telegram.WebApp.initData);
 }
 

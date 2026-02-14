@@ -128,7 +128,7 @@ The app uses a notebook theme with the following color palette:
 
 **Font:**
 
-- Handwritten: Caveat (Google Fonts)
+- Handwritten: Caveat
 
 ## Telegram Mini App Setup
 

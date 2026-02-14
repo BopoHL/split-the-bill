@@ -1,11 +1,14 @@
-.PHONY: up down stop start logs ps build restart shell-backend shell-frontend \
-        backend-db-migrate backend-db-rollback backend-db-upgrade backend-test
+.PHONY: up down ps restart logs logs-backend logs-frontend shell-backend shell-frontend \
+        db-migrate db-upgrade db-rollback test-backend
 
 up:
 	docker compose up --build -d
 
 down:
 	docker compose down
+
+ps:
+	docker compose ps
 
 restart:
 	make down
