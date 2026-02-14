@@ -25,15 +25,15 @@ shell-backend:
 
 shell-frontend:
 	docker compose exec frontend /bin/sh
-	
-backend-db migrate:
+
+db-migrate:
 	docker compose exec backend alembic revision --autogenerate -m "$(msg)"
 
-backend-db upgrade:
+db-upgrade:
 	docker compose exec backend alembic upgrade head
 
-backend-db rollback:
+db-rollback:
 	docker compose exec backend alembic downgrade -1
 
-backend test:
+test-backend:
 	docker compose exec backend pytest tests/

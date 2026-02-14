@@ -99,7 +99,7 @@ services:
       - --no-autoupdate
       - run
     depends_on:
-      - nginx
+      - nginx-prod
     networks:
       - app-network
 
