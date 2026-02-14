@@ -1,13 +1,37 @@
 services:
-  backend:
+  backend-dev:
     build:
       context: ./backend
+    profiles: ["dev"]
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST:-db}
+    volumes:
+      - ./backend:/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      app-network:
+        aliases:
+          - backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  backend-prod:
+    build:
+      context: ./backend
+    profiles: ["prod"]
     env_file:
       - .env
     environment:
       - DB_HOST=${DB_HOST:-db}
     networks:
-      - app-network
+      app-network:
+        aliases:
+          - backend
     restart: always
     depends_on:
       db:
@@ -53,7 +77,7 @@ services:
       - /app/.next
     restart: always
     depends_on:
-      - backend
+      - backend-dev
     networks:
       app-network:
         aliases:
@@ -73,7 +97,7 @@ services:
       - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
     restart: always
     depends_on:
-      - backend
+      - backend-prod
     networks:
       app-network:
         aliases:
@@ -93,7 +117,7 @@ services:
       - "80:80"
     restart: always
     depends_on:
-      - backend
+      - backend-dev
       - frontend-dev
 
   nginx-prod:
@@ -110,7 +134,7 @@ services:
       - "80:80"
     restart: always
     depends_on:
-      - backend
+      - backend-prod
       - frontend-prod
 
   cloudflared:
