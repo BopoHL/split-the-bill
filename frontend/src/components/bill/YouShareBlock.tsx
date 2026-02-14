@@ -44,7 +44,8 @@ export default function YouShareBlock({ billId, myParticipation, onMarkPaid, loa
   const reactions = [
     { emoji: '😊', label: 'Smiling' },
     { emoji: '😎', label: 'Cool' },
-    { emoji: '😱', label: 'Shocked' }
+    { emoji: '😱', label: 'Shocked' },
+    { emoji: '🤣', label: 'Laughing' }
   ];
 
   return (
