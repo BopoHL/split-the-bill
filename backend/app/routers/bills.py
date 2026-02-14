@@ -150,6 +150,7 @@ async def bill_events(bill_id: int):
         }
     )
 
+@router.post("/{bill_id}/reactions")
 def send_reaction(bill_id: int, reaction: ReactionCreate):
     """Broadcast a reaction to all bill participants"""
     notifier.broadcast(bill_id, f"REACTION:{reaction.user_id}:{reaction.emoji}")
