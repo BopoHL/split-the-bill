@@ -40,6 +40,8 @@ class User(TimestampModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     telegram_id: int = Field(unique=True, index=True, sa_type=BigInteger)
     username: Optional[str] = None
+    name: Optional[str] = None
+    surname: Optional[str] = None
     avatar_url: Optional[str] = None
     
     # Relationships

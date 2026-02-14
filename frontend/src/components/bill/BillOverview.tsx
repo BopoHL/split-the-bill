@@ -160,7 +160,9 @@ export default function BillOverview({ bill, onSplitBetween, loading }: BillOver
                             className="w-4 h-4 rounded border-ink/20 text-accent focus:ring-accent accent-accent"
                           />
                           <span className="text-[11px] font-medium text-ink truncate">
-                            {p.guest_name || `User #${p.user_id}`}
+                            {p.name || p.surname 
+                              ? `${p.name || ''} ${p.surname || ''}`.trim() 
+                              : p.username || p.guest_name || `User #${p.user_id}`}
                             {p.is_paid && ` ${t('bill.paidLabel')}`}
                           </span>
                         </label>

@@ -6,7 +6,7 @@ import { useStore } from '@/lib/store/useStore';
 import { getBill, generateTelegramShareLink } from '@/lib/api/bills';
 import { BillDetail } from '@/types/api';
 import Button from '@/components/ui/Button';
-import { ChevronLeft, Share2, Loader2 } from 'lucide-react';
+import { ChevronLeft, Share2, Loader2, Moon, Sun, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import BillDetailsCreator from '@/components/bill/BillDetailsCreator';
 import BillDetailsParticipant from '@/components/bill/BillDetailsParticipant';
@@ -17,7 +17,7 @@ export default function BillPage() {
   const params = useParams();
   const router = useRouter();
   const { id } = params;
-  const { currentUser } = useStore();
+  const { currentUser, theme, toggleTheme, language, setLanguage } = useStore();
   
   const [bill, setBill] = useState<BillDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,12 +121,37 @@ export default function BillPage() {
           </h1>
           
           <div className="flex items-center gap-1">
+            {/* Language Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const langs: Array<'en' | 'ru' | 'uz'> = ['en', 'ru', 'uz'];
+                const currentIndex = langs.indexOf(language);
+                const nextLang = langs[(currentIndex + 1) % langs.length];
+                setLanguage(nextLang);
+              }}
+              className="rounded-full flex items-center gap-1 px-3"
+            >
+              <Globe className="w-5 h-5" />
+              <span className="text-xs font-bold uppercase">{language}</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="rounded-full"
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </Button>
+
             <button 
               onClick={() => {
                 const link = generateTelegramShareLink(bill.id, bill.title || '');
                 shareLink(link);
               }}
-              className="p-2 -mr-2 hover:bg-black/5 rounded-full transition-colors text-accent"
+              className="p-2 hover:bg-black/5 rounded-full transition-colors text-accent"
             >
               <Share2 className="w-6 h-6" />
             </button>

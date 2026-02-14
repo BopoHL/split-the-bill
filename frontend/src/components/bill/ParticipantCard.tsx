@@ -82,15 +82,17 @@ export default function ParticipantCard({
           <div className="flex items-center gap-1.5 mb-0.5">
             <div className="w-7 h-7 rounded-full overflow-hidden border border-ink/10 flex-shrink-0 bg-accent/20">
               {p.avatar_url ? (
-                <img src={p.avatar_url} alt={p.username || ''} className="w-full h-full object-cover" />
+                <img src={p.avatar_url} alt={p.name || p.username || ''} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-paper-highlight text-[10px] font-bold text-accent">
-                  {(p.username || p.guest_name || 'U').charAt(0).toUpperCase()}
+                  {(p.name || p.username || p.guest_name || 'U').charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-            <p className="font-medium text-ink truncate text-sm">
-              {p.username || p.guest_name || `User #${p.user_id}`}
+            <p className="font-medium text-ink break-words text-sm leading-tight">
+              {p.name || p.surname 
+                ? `${p.name || ''} ${p.surname || ''}`.trim() 
+                : p.username || p.guest_name || `User #${p.user_id}`}
             </p>
             {isCreatorView && !isOwner && onDelete && (
               <button

@@ -215,10 +215,14 @@ class BillParticipantService:
     @staticmethod
     def map_to_response(p: BillUser) -> BillParticipantResponse:
         username = p.guest_name
+        name = None
+        surname = None
         avatar_url = None
         
         if hasattr(p, "user") and p.user:
             username = p.user.username
+            name = p.user.name
+            surname = p.user.surname
             avatar_url = p.user.avatar_url
             
         return BillParticipantResponse(
@@ -227,6 +231,8 @@ class BillParticipantService:
             user_id=p.user_id,
             guest_name=p.guest_name,
             username=username,
+            name=name,
+            surname=surname,
             avatar_url=avatar_url,
             allocated_amount=from_tiins(p.allocated_amount),
             is_paid=p.is_paid
