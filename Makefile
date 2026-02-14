@@ -14,6 +14,12 @@ restart:
 logs:
 	docker compose logs -f
 
+logs-backend:
+	docker compose logs -f backend
+
+logs-frontend:
+	docker compose logs -f frontend
+
 ps:
 	docker compose ps
 
@@ -28,13 +34,12 @@ shell-frontend:
 
 backend-db-migrate:
 	docker compose exec backend alembic revision --autogenerate -m "$(msg)"
+
+backend-db-upgrade:
 	docker compose exec backend alembic upgrade head
 
 backend-db-rollback:
 	docker compose exec backend alembic downgrade -1
-
-backend-db-upgrade:
-	docker compose exec backend alembic upgrade head
 
 backend-test:
 	docker compose exec backend pytest tests/

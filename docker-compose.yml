@@ -12,11 +12,18 @@ services:
     build:
       context: ./frontend
       args:
+        - ENV=${ENV:-development}
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
         - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
     environment:
+      - ENV=${ENV:-development}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
       - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     restart: always
     depends_on:
       - backend
@@ -39,6 +46,7 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: always
+    profiles: ["prod"]
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     command:
