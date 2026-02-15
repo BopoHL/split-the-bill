@@ -1,46 +1,85 @@
+x-common-config: &common-config
+  restart: always
+  networks:
+    - app-network
+  env_file: .env
+
 services:
   backend-dev:
+    <<: *common-config
+    networks:
+      app-network:
+        aliases: [ "backend" ]
     build:
       context: ./backend
-    profiles: ["dev"]
-    env_file:
-      - .env
+    profiles: [ "dev" ]
     environment:
       - DB_HOST=${DB_HOST:-db}
     volumes:
       - ./backend:/app
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-    networks:
-      app-network:
-        aliases:
-          - backend
-    restart: always
+    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
     depends_on:
       db:
         condition: service_healthy
-        required: false
 
   backend-prod:
-    build:
-      context: ./backend
-    profiles: ["prod"]
-    env_file:
-      - .env
-    environment:
-      - DB_HOST=${DB_HOST:-db}
+    <<: *common-config
     networks:
       app-network:
-        aliases:
-          - backend
-    restart: always
+        aliases: [ "backend" ]
+    build: ./backend
+    profiles: [ "prod" ]
+    environment:
+      - DB_HOST=${DB_HOST:-db}
     depends_on:
       db:
         condition: service_healthy
-        required: false
+
+  frontend-dev:
+    <<: *common-config
+    networks:
+      app-network:
+        aliases: [ "frontend" ]
+    build:
+      context: ./frontend
+      target: deps
+      args: &fe-args
+        ENV: ${ENV:-development}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+    profiles: [ "dev" ]
+    environment:
+      <<: *fe-args
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend-dev
+    command: npm run dev
+
+  frontend-prod:
+    <<: *common-config
+    networks:
+      app-network:
+        aliases: [ "frontend" ]
+    build:
+      context: ./frontend
+      args:
+        <<: *fe-args
+        ENV: ${ENV:-production}
+    profiles: [ "prod" ]
+    environment:
+      <<: *fe-args
+      ENV: ${ENV:-production}
+    depends_on:
+      - backend-prod
 
   db:
+    <<: *common-config
     image: postgres:17-alpine
-    profiles: ["dev"]
+    profiles: [ "dev" ]
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
@@ -48,108 +87,36 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    restart: always
 
-  frontend-dev:
-    build:
-      context: ./frontend
-      args:
-        - ENV=${ENV:-development}
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
-        - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
-    profiles: ["dev"]
-    environment:
-      - ENV=${ENV:-development}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
-      - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
-      - WATCHPACK_POLLING=true
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    restart: always
-    depends_on:
-      - backend-dev
-    networks:
-      app-network:
-        aliases:
-          - frontend
-
-  frontend-prod:
-    build:
-      context: ./frontend
-      args:
-        - ENV=${ENV:-production}
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
-        - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
-    profiles: ["prod"]
-    environment:
-      - ENV=${ENV:-production}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-/api}
-      - NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
-    restart: always
-    depends_on:
-      - backend-prod
-    networks:
-      app-network:
-        aliases:
-          - frontend
-
-  nginx-dev:
+  nginx:
+    <<: *common-config
     image: nginx:latest
-    container_name: nginx
-    profiles: ["dev"]
+    profiles: [ "dev", "prod" ]
     volumes:
-      - ./nginx/nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      app-network:
-        aliases:
-          - nginx
+      - ./nginx/nginx-${ENV:-production}.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8080:80"
-    restart: always
+      - "${NGINX_PORT:-80}:80"
     depends_on:
-      - backend-dev
-      - frontend-dev
-
-  nginx-prod:
-    image: nginx:latest
-    container_name: nginx
-    profiles: ["prod"]
-    volumes:
-      - ./nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      app-network:
-        aliases:
-          - nginx
-    ports:
-      - "80:80"
-    restart: always
-    depends_on:
-      - backend-prod
-      - frontend-prod
+      backend-dev: { condition: service_started, required: false }
+      frontend-dev: { condition: service_started, required: false }
+      backend-prod: { condition: service_started, required: false }
+      frontend-prod: { condition: service_started, required: false }
 
   cloudflared:
+    <<: *common-config
     image: cloudflare/cloudflared:latest
-    profiles: ["prod"]
+    profiles: [ "prod" ]
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    command:
-      - tunnel
-      - --no-autoupdate
-      - run
-    restart: always
+    command: tunnel --no-autoupdate run
     depends_on:
-      - nginx-prod
-    networks:
-      - app-network
+      - nginx
 
 networks:
   app-network:
