@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store/useStore';
 import { getBill, generateTelegramShareLink } from '@/lib/api/bills';
@@ -24,15 +24,25 @@ export default function BillPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeReactions, setActiveReactions] = useState<Record<number, string>>({});
 
+  const reactionTimeoutsRef = useRef<Record<number, NodeJS.Timeout>>({});
   const handleReaction = useCallback((userId: number, emoji: string) => {
-    setActiveReactions(prev => ({ ...prev, [userId]: emoji }));
+    // Clear existing timeout for this user if any
+    if (reactionTimeoutsRef.current[userId]) {
+      clearTimeout(reactionTimeoutsRef.current[userId]);
+    }
+
+    // Set unique reaction with timestamp to trigger re-animation
+    const uniqueReaction = `${emoji}|${Date.now()}`;
+    setActiveReactions(prev => ({ ...prev, [userId]: uniqueReaction }));
+
     // Clear the reaction after 3 seconds
-    setTimeout(() => {
+    reactionTimeoutsRef.current[userId] = setTimeout(() => {
       setActiveReactions(prev => {
         const next = { ...prev };
         delete next[userId];
         return next;
       });
+      delete reactionTimeoutsRef.current[userId];
     }, 3000);
   }, []);
 

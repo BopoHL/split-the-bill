@@ -21,7 +21,8 @@ export default function YouShareBlock({ billId, myParticipation, onMarkPaid, loa
   const isPaid = myParticipation.is_paid;
   const myAmount = myParticipation.allocated_amount;
   const [copied, setCopied] = useState(false);
-  const [sendingReaction, setSendingReaction] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(false);
+  const [activeEmoji, setActiveEmoji] = useState<string | null>(null);
 
   const handleCopyAmount = () => {
     navigator.clipboard.writeText(myAmount.toString());
@@ -30,14 +31,21 @@ export default function YouShareBlock({ billId, myParticipation, onMarkPaid, loa
   };
 
   const handleEmojiClick = async (emoji: string) => {
-    if (!myParticipation.user_id) return;
+    if (!myParticipation.user_id || cooldown) return;
     try {
-      setSendingReaction(emoji);
+      setCooldown(true);
+      setActiveEmoji(emoji);
       await sendReaction(billId, myParticipation.user_id, emoji);
-      setTimeout(() => setSendingReaction(null), 500);
+      
+      // Full cooldown for all emojis (match user's preference of 1s or animation duration)
+      setTimeout(() => {
+        setCooldown(false);
+        setActiveEmoji(null);
+      }, 1000);
     } catch (e) {
       console.error('Failed to send reaction:', e);
-      setSendingReaction(null);
+      setCooldown(false);
+      setActiveEmoji(null);
     }
   };
 
@@ -83,17 +91,28 @@ export default function YouShareBlock({ billId, myParticipation, onMarkPaid, loa
           </div>
           
           <div className="flex justify-center gap-4 mt-4">
-            {reactions.map(({ emoji }) => (
-              <motion.button
-                key={emoji}
-                whileTap={{ scale: 1.5 }}
-                onClick={() => handleEmojiClick(emoji)}
-                className="text-2xl hover:bg-paper-highlight p-2 rounded-full transition-colors active:scale-125"
-                disabled={sendingReaction === emoji}
-              >
-                {emoji}
-              </motion.button>
-            ))}
+            {reactions.map(({ emoji }) => {
+              const isActive = emoji === activeEmoji;
+              return (
+                <motion.button
+                  key={emoji}
+                  whileTap={cooldown ? {} : { scale: 1.5 }}
+                  onClick={() => handleEmojiClick(emoji)}
+                  className={`
+                    text-2xl p-2 rounded-full transition-all duration-300 border-2
+                    ${cooldown 
+                      ? isActive
+                        ? 'opacity-100 grayscale-0 border-accent scale-110 shadow-md bg-accent/10'
+                        : 'opacity-20 grayscale cursor-not-allowed scale-90 border-transparent'
+                      : 'hover:bg-paper-highlight active:scale-125 border-transparent'
+                    }
+                  `}
+                  disabled={cooldown}
+                >
+                  {emoji}
+                </motion.button>
+              );
+            })}
           </div>
           
           <AnimatePresence>

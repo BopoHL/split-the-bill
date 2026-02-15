@@ -22,3 +22,5 @@ frontend/tsconfig.tsbuildinfo
 .DS_Store
 *.log
 .env
+
+.vscode

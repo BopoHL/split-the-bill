@@ -72,7 +72,7 @@ export default function ParticipantCard({
             transition={{ duration: 2, ease: "easeOut" }}
             className="absolute inset-x-0 top-0 flex justify-center z-50 pointer-events-none"
           >
-            <span className="text-4xl">{reaction}</span>
+            <span className="text-4xl">{reaction.split('|')[0]}</span>
           </motion.div>
         )}
       </AnimatePresence>
