@@ -28,10 +28,14 @@ export default function RootLayout({
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
     // Check if running in Telegram
     const isTG = isTelegramWebApp();
-    setIsTelegram(isTG);
+    
+    // Defer state updates to avoid cascading renders warning
+    const timeoutId = setTimeout(() => {
+      setMounted(true);
+      setIsTelegram(isTG);
+    }, 0);
     
 
     if (isTG) {
@@ -75,6 +79,8 @@ export default function RootLayout({
         }
       }
     }
+
+    return () => clearTimeout(timeoutId);
   }, [setTheme, setCurrentUser, router]);
 
   // Apply theme class to html element
