@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Onest:wght@500;600&family=JetBrains+Mono:wght@700&display=block" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .canvas { width: 1200px; height: 900px; display: flex; justify-content: center; gap: 110px; padding: 46px 0 0; }
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 26px; width: 340px; }
+  .stage { height: 760px; width: 100%; display: flex; align-items: center; justify-content: center; }
+  .chip { font-size: 22px; white-space: nowrap; }
+  .chip .num { width: 32px; height: 32px; font-size: 17px; }
+  .phone { width: 340px; }
+
+  .dialog {
+    width: 340px;
+    /* The app's 10px corner, at the size the dialog is drawn here. */
+    border-radius: 9.5px;
+    box-shadow: 9px 10px 0 var(--ink);
+    overflow: hidden;
+  }
+  .dialog img { display: block; width: 100%; }
+
+  .card {
+    width: 470px;
+    border: 3px solid var(--ink);
+    border-radius: 22px;
+    box-shadow: 9px 10px 0 var(--ink);
+    overflow: hidden;
+  }
+  .card img { display: block; width: 100%; }
+
+  .chat { display: flex; flex-direction: column; background: #d9e6c8; }
+  .chat header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 50px 18px 14px;
+    background: #fbf7ee;
+    border-bottom: 2px solid var(--line);
+    font-weight: 600; font-size: 19px;
+  }
+  .chat header i {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--acc); color: #fff; font-style: normal;
+    display: grid; place-items: center; font-family: 'Manrope', sans-serif; font-weight: 800;
+  }
+  .chat .feed { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 14px 26px; gap: 6px; }
+  .bubble { background: #fff; border-radius: 16px 16px 16px 4px; padding: 8px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12); }
+  .bubble b { display: block; color: var(--acc); font-size: 15px; padding: 2px 4px 6px; }
+  .bubble img { display: block; width: 100%; border-radius: 10px; }
+  .button {
+    background: rgba(70, 90, 60, 0.42); color: #fff;
+    border-radius: 10px; padding: 11px; text-align: center; font-weight: 600; font-size: 15px;
+  }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas"></div>
+<script src="copy.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const lang = params.get('lang') || 'ru';
+  const step = Number(params.get('step') || 1);
+  const copy = COPY[lang];
+  document.documentElement.lang = lang;
+
+  const shot = (name) => `shots/${lang}/${name}.png`;
+  const visuals = {
+    card: () => `<div class="card"><img src="${shot('card')}"></div>`,
+    chat: () => `
+      <div class="phone chat">
+        <header><i>${copy.chat[0]}</i>${copy.chat}</header>
+        <div class="feed">
+          <div class="bubble"><b>${copy.sender}</b><img src="${shot('card')}"></div>
+          <div class="button">${copy.seat}</div>
+          <div class="button">${copy.open}</div>
+        </div>
+      </div>`,
+  };
+  const frame = (name) => (DIALOG_SHOTS.includes(name) ? 'dialog' : 'phone');
+  const picture = (name) => (visuals[name] ? visuals[name]() : `<div class="${frame(name)}"><img src="${shot(name)}"></div>`);
+
+  document.getElementById('canvas').innerHTML = GUIDE_SHOTS[step - 1]
+    .map((name, index) => `
+      <div class="slot">
+        <div class="chip"><span class="num">${index + 1}</span>${copy.guide[step - 1][index]}</div>
+        <div class="stage">${picture(name)}</div>
+      </div>`)
+    .join('');
+</script>
+</body>
+</html>

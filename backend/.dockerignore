@@ -1,0 +1,10 @@
+__pycache__
+*.py[cod]
+.pytest_cache
+.venv
+venv
+.git
+.env*
+*.log
+# Uploaded receipts live in a volume; a local copy must never end up baked in.
+storage

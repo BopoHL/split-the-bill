@@ -1,0 +1,31 @@
+{
+  "name": "split-the-bill-admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "lint": "eslint",
+    "check": "tsc --noEmit",
+    "test": "vitest run --reporter=dot"
+  },
+  "dependencies": {
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^3.0.0"
+  }
+}

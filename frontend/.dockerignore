@@ -1,0 +1,10 @@
+# Everything here is either rebuilt inside the image or has no business in it.
+# Without this file the build context is ~860 MB of local node_modules and
+# build output, all of it hashed on every build and some of it copied in.
+node_modules
+.next
+out
+coverage
+.git
+.env*
+*.log

@@ -1,0 +1,35 @@
+# Root .gitignore
+.agent/rules
+
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/*.db
+# The SQLite fallback app/database.py writes when no Postgres is configured.
+split_the_bill.db
+backend/*.env
+backend/.pytest_cache/
+backend/.idea/
+# Uploaded/processed receipt images (runtime data, not source)
+backend/storage/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/tsconfig.tsbuildinfo
+
+# General
+.DS_Store
+*.log
+.env
+google-credentials.json
+
+.vscode
+
+# Claude scratchpad — project notes, maps, drafts, etc. Not for source code.
+.claude/
+.gstack/

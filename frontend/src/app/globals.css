@@ -1,0 +1,595 @@
+@import "tailwindcss";
+
+/* `dark:` follows the app's theme, not the system's. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Redesign «Bold» — "digital receipt / ticket" design system (from Claude Design).
+ * Warm paper palette, ink near-black, terracotta accent, green for paid; hard
+ * offset shadows, perforation/barcode motifs. The raw palette (--card, --ink-2,
+ * --line, --acc, --green…) is mapped onto the semantic tokens (surface / muted /
+ * border / accent / success) so existing Tailwind classes adopt the new look,
+ * and characterful components are styled on top.
+ */
+
+/*
+ * Themes. Each sets its own palette — the raw colours and what sits on them —
+ * on <html data-theme> or on anything that previews it; the mapping onto the
+ * semantic tokens below is the same for all of them. Light is the default.
+ */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  /* Paper palette */
+  --card: #fbf7ee;
+  --paper-2: #e7ddc9;
+  --ink-2: #6c6354;
+  --ink-3: #9b917d;
+  --line: #cdc1a7;
+  --acc: #e1442f;
+  --acc-deep: #bd3320;
+  --green: #2f7d4f;
+  --green-weak: #e2efe5;
+
+  --background: #efe7d8; /* paper page */
+  --foreground: #1b1813; /* ink */
+  /* The «Bold» ink: ticket outlines and the hard offset shadow. In the light
+     theme both are the text's own ink; the dark theme softens them apart from
+     the text, which is what kept it from glaring. */
+  --outline: var(--foreground);
+  --shadow-ink: var(--foreground);
+  /* A small inverted patch — the active tab, the «You» badge. */
+  --emphasis: var(--foreground);
+  --emphasis-fg: var(--background);
+  --accent-weak: #f4e2da; /* light terracotta tint */
+  --taken: #f1e7cf; /* subtle beige fill for taken (assigned/shared) rows */
+  /* Text and icons on the coloured fills. */
+  --accent-fg: #ffffff;
+  --success-fg: #ffffff;
+  --danger-fg: #ffffff;
+  --danger: var(--acc-deep);
+  --accent-light: #ecd8cb;
+
+  /* Dark "ink bar" used by modal/ledger/topnav headers (dark in every theme) */
+  --bar: #1b1813;
+  --bar-fg: #efe7d8;
+
+  /* Focus ring */
+  --ring: rgba(225, 68, 47, 0.35);
+
+  /* Shadows — soft for fallbacks, plus the signature hard offset shadow */
+  --shadow-sm: 0 1px 2px rgba(27, 24, 19, 0.08);
+  --shadow-md: 0 2px 8px rgba(27, 24, 19, 0.1);
+  --shadow-lg: 0 28px 64px -22px rgba(27, 24, 19, 0.5);
+  --shadow-lifted: 6px 8px 0 rgba(27, 24, 19, 0.35);
+  --shadow-card-hover: 5px 6px 0 rgba(27, 24, 19, 0.16);
+
+  /* Chart categories, always in this order — checked for colour-blind
+     separation and contrast on the cards (see the analytics screen). The last
+     one is the neutral «other». */
+  --chart-1: #d9442f;
+  --chart-2: #1f74a6;
+  --chart-3: #b8840f;
+  --chart-4: #8a3f8f;
+  --chart-5: #5f7d23;
+  --chart-other: #9b917d;
+}
+
+[data-theme='dark'] {
+  /* Native controls — radios, checkboxes, scrollbars — in the dark too. */
+  color-scheme: dark;
+  /* «Warm graphite»: the light theme's paper, dimmed rather than inverted.
+     Low contrast on purpose — text is soft, outlines are a step above the
+     cards, and the hard shadow falls darker than the page instead of glowing
+     in the text's colour. The orange fills are a shade deeper so light text
+     reads on them; the light green keeps dark text. */
+  --card: #2a2723;
+  --paper-2: #312d28;
+  --ink-2: #a89c88;
+  --ink-3: #7b7061;
+  --line: #3f3830;
+  --acc: #c95f44;
+  --acc-deep: #b5523a;
+  --green: #7eaa82;
+  --green-weak: #2b3528;
+
+  --background: #22201c;
+  --foreground: #dcd2c1;
+  --outline: #574d41;
+  --shadow-ink: #100e0c;
+  --emphasis: #443c33;
+  --emphasis-fg: #ede4d4;
+  --accent-weak: #3d2c25;
+  --taken: #38312a;
+  --accent-fg: #ede4d4;
+  --success-fg: #1a1815;
+  --danger-fg: #1a1815;
+  /* Lighter than the pressed accent: danger is mostly text on the page. */
+  --danger: #e0785c;
+  --accent-light: #4a382e;
+
+  --bar: #1a1815;
+  --bar-fg: #dcd2c1;
+
+  --ring: rgba(201, 95, 68, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 28px 64px -22px rgba(0, 0, 0, 0.6);
+  --shadow-lifted: 6px 8px 0 rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 5px 6px 0 rgba(0, 0, 0, 0.5);
+
+  /* The same chart hues, stepped for the dark cards rather than reused. */
+  --chart-1: #df553b;
+  --chart-2: #3a8ccc;
+  --chart-3: #c08a1c;
+  --chart-4: #a35fa6;
+  --chart-5: #789636;
+  --chart-other: #7b7061;
+}
+
+/* Pro. Nord: the Arctic's Polar Night, the frost blue for an accent — light
+   enough that what sits on it is dark. */
+[data-theme='nord'] {
+  color-scheme: dark;
+  --card: #3b4252;
+  --paper-2: #434c5e;
+  --ink-2: #a7b1c2;
+  --ink-3: #7b869a;
+  --line: #4c566a;
+  --acc: #88c0d0;
+  --acc-deep: #81a1c1;
+  --green: #a3be8c;
+  --green-weak: #3f4d45;
+
+  --background: #2e3440;
+  --foreground: #e5e9f0;
+  --outline: #56627a;
+  --shadow-ink: #20242d;
+  --emphasis: #4c566a;
+  --emphasis-fg: #eceff4;
+  --accent-weak: #3a4b5a;
+  --taken: #414a5b;
+  --accent-fg: #2e3440;
+  --success-fg: #2e3440;
+  --danger-fg: #2e3440;
+  --danger: #d4747d;
+  --accent-light: #435869;
+
+  --bar: #242933;
+  --bar-fg: #e5e9f0;
+
+  --ring: rgba(136, 192, 208, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 28px 64px -22px rgba(0, 0, 0, 0.55);
+  --shadow-lifted: 6px 8px 0 rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 5px 6px 0 rgba(0, 0, 0, 0.45);
+
+  --chart-1: #88c0d0;
+  --chart-2: #d08770;
+  --chart-3: #ebcb8b;
+  --chart-4: #b48ead;
+  --chart-5: #a3be8c;
+  --chart-other: #6b768a;
+}
+
+/* Pro. Nord Frost: Nord's Snow Storm by day — pale blue-grey paper, the deep
+   frost blue, the Polar Night for ink. */
+[data-theme='nord_frost'] {
+  color-scheme: light;
+  --card: #f5f7fa;
+  --paper-2: #dce2ea;
+  --ink-2: #4c566a;
+  --ink-3: #7b8698;
+  --line: #c5cdd9;
+  --acc: #5e81ac;
+  --acc-deep: #4c6f99;
+  --green: #557d43;
+  --green-weak: #e0eadb;
+
+  --background: #e5e9f0;
+  --foreground: #2e3440;
+  --outline: var(--foreground);
+  --shadow-ink: var(--foreground);
+  --emphasis: var(--foreground);
+  --emphasis-fg: #eceff4;
+  --accent-weak: #dde6f1;
+  --taken: #e3e8ef;
+  --accent-fg: #ffffff;
+  --success-fg: #ffffff;
+  --danger-fg: #ffffff;
+  --danger: #b04a54;
+  --accent-light: #cfdbe9;
+
+  --bar: #2e3440;
+  --bar-fg: #eceff4;
+
+  --ring: rgba(94, 129, 172, 0.35);
+
+  --shadow-sm: 0 1px 2px rgba(46, 52, 64, 0.08);
+  --shadow-md: 0 2px 8px rgba(46, 52, 64, 0.1);
+  --shadow-lg: 0 28px 64px -22px rgba(46, 52, 64, 0.5);
+  --shadow-lifted: 6px 8px 0 rgba(46, 52, 64, 0.3);
+  --shadow-card-hover: 5px 6px 0 rgba(46, 52, 64, 0.16);
+
+  --chart-1: #5e81ac;
+  --chart-2: #c46d3f;
+  --chart-3: #b8901c;
+  --chart-4: #9a6f93;
+  --chart-5: #5f8a45;
+  --chart-other: #9aa3b2;
+}
+
+/* Pro. Sakura: cherry-blossom paper and a cherry accent. */
+[data-theme='sakura'] {
+  color-scheme: light;
+  --card: #fdf5f4;
+  --paper-2: #efdcdc;
+  --ink-2: #7a5f66;
+  --ink-3: #a88f95;
+  --line: #e2c9cc;
+  --acc: #c8466c;
+  --acc-deep: #a8365a;
+  --green: #3f7d55;
+  --green-weak: #e1efe4;
+
+  --background: #f4e6e6;
+  --foreground: #2d1b20;
+  --outline: var(--foreground);
+  --shadow-ink: var(--foreground);
+  --emphasis: var(--foreground);
+  --emphasis-fg: var(--background);
+  --accent-weak: #f7dde4;
+  --taken: #f5e4e2;
+  --accent-fg: #ffffff;
+  --success-fg: #ffffff;
+  --danger-fg: #ffffff;
+  --danger: #b23a45;
+  --accent-light: #f0cdd6;
+
+  --bar: #2d1b20;
+  --bar-fg: #f4e6e6;
+
+  --ring: rgba(200, 70, 108, 0.35);
+
+  --shadow-sm: 0 1px 2px rgba(45, 27, 32, 0.08);
+  --shadow-md: 0 2px 8px rgba(45, 27, 32, 0.1);
+  --shadow-lg: 0 28px 64px -22px rgba(45, 27, 32, 0.5);
+  --shadow-lifted: 6px 8px 0 rgba(45, 27, 32, 0.3);
+  --shadow-card-hover: 5px 6px 0 rgba(45, 27, 32, 0.16);
+
+  --chart-1: #c8466c;
+  --chart-2: #2f6fa3;
+  --chart-3: #b8840f;
+  --chart-4: #7c4f9e;
+  --chart-5: #5f7d23;
+  --chart-other: #a88f95;
+}
+
+/* Pro. Midnight: night blue with an amber light — dark text on the amber. */
+[data-theme='midnight'] {
+  color-scheme: dark;
+  --card: #1a2234;
+  --paper-2: #222b40;
+  --ink-2: #9aa6bd;
+  --ink-3: #6c7891;
+  --line: #2d3850;
+  --acc: #f0a54a;
+  --acc-deep: #d98f35;
+  --green: #6fc39a;
+  --green-weak: #1e3a33;
+
+  --background: #121826;
+  --foreground: #dde3ee;
+  --outline: #3a4762;
+  --shadow-ink: #0a0e17;
+  --emphasis: #2f3a52;
+  --emphasis-fg: #eef2f8;
+  --accent-weak: #3a2e22;
+  --taken: #252f45;
+  --accent-fg: #121826;
+  --success-fg: #121826;
+  --danger-fg: #121826;
+  --danger: #f07a6e;
+  --accent-light: #4a3a26;
+
+  --bar: #0d121d;
+  --bar-fg: #dde3ee;
+
+  --ring: rgba(240, 165, 74, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 28px 64px -22px rgba(0, 0, 0, 0.65);
+  --shadow-lifted: 6px 8px 0 rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 5px 6px 0 rgba(0, 0, 0, 0.55);
+
+  --chart-1: #f0a54a;
+  --chart-2: #5aa9e6;
+  --chart-3: #e27a8f;
+  --chart-4: #a98ae0;
+  --chart-5: #79c27f;
+  --chart-other: #6c7891;
+}
+
+/* What every theme's palette means. Declared wherever a theme is, so a preview
+   of one theme inside another resolves against its own colours. */
+:root,
+[data-theme] {
+  --surface: var(--card); /* cards, sheets, receipt */
+  --surface-2: var(--paper-2); /* subtle fills, hover, inputs */
+  --muted: var(--ink-2);
+  --muted-2: var(--ink-3);
+  --border: var(--line); /* hairline / dashed rules */
+  --accent: var(--acc);
+  --accent-hover: var(--acc-deep);
+  --success: var(--green);
+  --shadow-hard: 4px 5px 0 var(--shadow-ink);
+  --shadow-hard-sm: 2px 3px 0 var(--shadow-ink);
+
+  /* Legacy aliases — kept so older markup still resolves */
+  --ink: var(--foreground);
+  --paper: var(--surface);
+  --paper-highlight: var(--surface-2);
+}
+
+:root {
+  /* Telegram Stars, the currency Pro is paid in: their gold in every theme,
+     and the ink that reads on it. */
+  --star: #f2a900;
+  --star-fg: #1b1813;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-border: var(--border);
+  --color-outline: var(--outline);
+  --color-emphasis: var(--emphasis);
+  --color-emphasis-fg: var(--emphasis-fg);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-weak: var(--accent-weak);
+  --color-taken: var(--taken);
+  --color-accent-fg: var(--accent-fg);
+  --color-success-fg: var(--success-fg);
+  --color-danger-fg: var(--danger-fg);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-green-weak: var(--green-weak);
+  --color-bar: var(--bar);
+  --color-bar-fg: var(--bar-fg);
+  --color-star: var(--star);
+  --color-star-fg: var(--star-fg);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-other: var(--chart-other);
+
+  /* Legacy aliases */
+  --color-paper: var(--paper);
+  --color-paper-highlight: var(--paper-highlight);
+  --color-ink: var(--ink);
+  --color-accent-light: var(--accent-light);
+
+  /* Redesign «Bold» type — Cyrillic-capable substitutes for the mock's fonts:
+     Onest (body) · Manrope (display/headings) · JetBrains Mono (numbers/amounts). */
+  --font-sans: var(--ff-body), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--ff-display), var(--ff-body), system-ui, sans-serif;
+  --font-mono: var(--ff-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Usable-area insets.
+   Defaults come from the browser; SafeAreaProvider overwrites them with the
+   values Telegram reports once the client supports Bot API 8.0. `--content-safe-*`
+   additionally clears Telegram's floating controls in fullscreen and is what
+   fixed headers and the FAB should use. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --content-safe-top: env(safe-area-inset-top, 0px);
+  --content-safe-right: env(safe-area-inset-right, 0px);
+  --content-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --content-safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* Keep dialogs usable in short landscape viewports. The first declaration is
+   the fallback for engines without dynamic viewport units. */
+.safe-modal-height {
+  max-height: calc(100vh - 2rem - var(--content-safe-top) - var(--content-safe-bottom));
+  max-height: calc(100dvh - 2rem - var(--content-safe-top) - var(--content-safe-bottom));
+}
+
+html,
+body {
+  height: 100%;
+  /* Clip sideways overflow without making body a second vertical scroller.
+     Scroll locking and viewport restoration both track window.scrollY. */
+  overflow-x: clip;
+  /* Disable the double-tap-to-zoom gesture everywhere (keeps panning/scroll). */
+  touch-action: manipulation;
+  /* No rubber-banding and no pull-to-refresh: on iOS the bounce drags the
+     Telegram viewport itself, which reads as the app sliding around. */
+  overscroll-behavior: none;
+}
+
+/* Scrollable regions keep their own overscroll to themselves, so reaching the
+   end of a list never starts scrolling the page behind it. */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle neutral scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 9999px;
+  border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-2);
+}
+
+/* Calm theme transitions, scoped to the properties that actually change. */
+body,
+.theme-transition {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Hide spin buttons for numeric inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/*
+ * Focus auto-zoom guard — applied on every device. Mobile Safari zooms the
+ * page whenever a focused field's font is under 16px (and ignores the
+ * viewport's `user-scalable=no` for this); Android/desktop don't focus-zoom,
+ * but pinning all text controls to 16px keeps behaviour identical everywhere
+ * and is harmless. `!important` is needed to beat the Tailwind size utilities.
+ * Pinch-zoom itself is already disabled by the viewport meta in layout.tsx.
+ */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* Accessible focus ring for interactive elements. In the base layer, so a
+   field that shows focus with its own border (`outline-none`) is not ringed
+   a second time. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * «Bold» action buttons — the signature hard offset shadow plus a press that
+ * sinks the button into where its shadow was (translate by the shadow offset,
+ * shadow gone). Shared so every styled button presses identically; matches
+ * the NumericKeypad keys. On framer-motion buttons the translate comes from
+ * whileTap (inline transform wins) while the shadow below still eases on its
+ * own — box-shadow and transform are independent, so the two never fight.
+ *
+ * The press lands fast and the release springs back with a slight overshoot.
+ * Both used to snap: a quick tap put the button down and up within a frame or
+ * two, so taps in a row read as the button blinking rather than being pressed.
+ * A transition uses the timing of the state it moves into, so the fast press
+ * lives on :active and the springy release on the resting rule.
+ */
+.btn-hard,
+.btn-hard-sm {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-hard {
+  box-shadow: var(--shadow-hard);
+}
+.btn-hard-sm {
+  box-shadow: var(--shadow-hard-sm);
+}
+.btn-hard:active:not(:disabled, [aria-disabled='true']),
+.btn-hard-sm:active:not(:disabled, [aria-disabled='true']) {
+  box-shadow: 0 0 0 var(--shadow-ink);
+  transition-duration: 0.15s, 0.15s, 0.15s, 0.07s, 0.07s;
+  transition-timing-function: ease, ease, ease, ease-out, ease-out;
+}
+.btn-hard:active:not(:disabled, [aria-disabled='true']) {
+  transform: translate(4px, 5px);
+}
+.btn-hard-sm:active:not(:disabled, [aria-disabled='true']) {
+  transform: translate(2px, 3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-hard,
+  .btn-hard-sm,
+  .btn-hard:active:not(:disabled, [aria-disabled='true']),
+  .btn-hard-sm:active:not(:disabled, [aria-disabled='true']) {
+    transition-duration: 0.15s, 0.15s, 0.15s, 0s, 0s;
+  }
+}
+
+/*
+ * A row that opens on tap. The toggle is stretched under the row's content and
+ * must span the row's whole box, so the press tint fills it edge to edge under
+ * the row's own buttons. An ink tint rather than a paper one, so it reads the
+ * same on a paid (green) row and in the dark theme. The native tap highlight
+ * is off: it would paint the toggle's box over those buttons.
+ */
+.row-press {
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+}
+.row-press:active {
+  background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+/*
+ * The guided tour's ring round the element to press: a glow that swells out of
+ * the ring and fades, evenly on every side. It starts from nothing at the
+ * ring's own edge, so a new round never jumps.
+ */
+@keyframes tour-glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+.tour-glow {
+  animation: tour-glow 1.6s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-glow {
+    animation: none;
+  }
+}

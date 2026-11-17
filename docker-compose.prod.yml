@@ -1,0 +1,86 @@
+services:
+  backend:
+    image: ghcr.io/bopohl/split-the-bill-backend:${IMAGE_TAG:-latest}
+    restart: always
+    env_file: .env
+    environment:
+      - DB_HOST=postgres
+      # The deploy passes the repository's PostHog variables, the ones the app
+      # is built with, so the server's events land in the same project.
+      - POSTHOG_KEY=${POSTHOG_KEY:-}
+      - POSTHOG_HOST=${POSTHOG_HOST:-}
+    volumes:
+      - backend_storage:/app/storage
+      - ./google-credentials.json:/app/google-credentials.json:ro
+    networks: [ app-network ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/bopohl/split-the-bill-frontend:${IMAGE_TAG:-latest}
+    restart: always
+    env_file: .env
+    networks: [ app-network ]
+    depends_on:
+      - backend
+
+  # Publishes the built panel into the shared volume and exits — there is no
+  # long-running process behind admin.split-the-bill.uz, nginx serves the files.
+  admin:
+    image: ghcr.io/bopohl/split-the-bill-admin:${IMAGE_TAG:-latest}
+    restart: "no"
+    volumes:
+      - admin_static:/var/www/admin
+    networks: [ app-network ]
+
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    command: >
+      postgres
+      -c shared_buffers=192MB
+      -c effective_cache_size=512MB
+      -c work_mem=8MB
+      -c maintenance_work_mem=64MB
+      -c max_connections=30
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [ app-network ]
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  nginx:
+    # Pinned to the stable line. `latest` follows mainline, so every deploy could
+    # pull a new nginx and, on a bad day, one that refuses the config.
+    image: nginx:1.30
+    restart: always
+    volumes:
+      - ./nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - admin_static:/var/www/admin:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    networks: [ app-network ]
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  backend_storage:
+  admin_static:

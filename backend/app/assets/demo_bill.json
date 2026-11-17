@@ -1,0 +1,20 @@
+{
+  "currency": "uzs",
+  "title": {
+    "ru": "Ужин с друзьями",
+    "uz": "Do'stlar bilan kechki ovqat",
+    "en": "Dinner with friends"
+  },
+  "friends": {
+    "ru": ["Алишер", "Мадина"],
+    "uz": ["Alisher", "Madina"],
+    "en": ["Alisher", "Madina"]
+  },
+  "items": [
+    {"price": 55000, "name": {"ru": "Плов", "uz": "Osh", "en": "Plov"}},
+    {"price": 32000, "name": {"ru": "Шашлык из баранины", "uz": "Qo'y go'shtidan shashlik", "en": "Lamb kebab"}},
+    {"price": 18000, "name": {"ru": "Салат «Ачичук»", "uz": "Achchiq-chuchuk", "en": "Tomato and onion salad"}},
+    {"price": 6000, "name": {"ru": "Лепёшка", "uz": "Non", "en": "Flatbread"}},
+    {"price": 12000, "name": {"ru": "Зелёный чай, чайник", "uz": "Ko'k choy, choynak", "en": "Green tea, pot"}}
+  ]
+}

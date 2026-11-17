@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* The panel borrows the app's paper palette so the two don't look unrelated,
+   but it is a desktop tool: denser, no hard shadows, no ticket motifs. */
+:root {
+  --background: #f6f2e9;
+  --surface: #fbf7ee;
+  --foreground: #1b1813;
+  --muted: #6c6354;
+  --muted-2: #9b917d;
+  --border: #ddd3bd;
+  --accent: #e1442f;
+  --success: #2f7d4f;
+  --danger: #bd3320;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

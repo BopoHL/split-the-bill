@@ -1,0 +1,34 @@
+{
+  "cashTotal": 0,
+  "cardTotal": 52500,
+  "vatTotal": 5625,
+  "receiptType": 0,
+  "isRefund": 0,
+  "extraInfo": {
+    "companyName": "\"JUGER REGION\" MAS'ULIYATI CHEKLANGAN JAMIYAT"
+  },
+  "paymentDetails": [
+    {
+      "name": "ГП Пицца закрытая ОБЛ ",
+      "price": 52000,
+      "amount": 4,
+      "discount": 0,
+      "other": 0,
+      "goodPrice": 0,
+      "vat": 5571.43,
+      "vatPercent": 12,
+      "productCode": "01905007001000000"
+    },
+    {
+      "name": "3Пакет маленький логотип",
+      "price": 500,
+      "amount": 1,
+      "discount": 0,
+      "other": 0,
+      "goodPrice": 0,
+      "vat": 53.57,
+      "vatPercent": 12,
+      "productCode": "01905007001000000"
+    }
+  ]
+}

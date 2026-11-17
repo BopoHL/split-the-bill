@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Onest:wght@500;600&family=JetBrains+Mono:wght@700&display=block" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .canvas { width: 1280px; height: 720px; }
+  .text { position: absolute; left: 64px; top: 64px; width: 500px; }
+  h1 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 50px;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 44px 0 40px;
+    text-wrap: balance;
+  }
+  ol { list-style: none; display: grid; gap: 18px; }
+  li { display: flex; align-items: center; gap: 18px; font-size: 25px; font-weight: 600; }
+  li .num { width: 44px; height: 44px; font-size: 22px; box-shadow: 3px 4px 0 var(--ink); flex: none; }
+  .handle {
+    position: absolute; left: 64px; bottom: 52px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 20px; color: var(--ink-2);
+  }
+  .phones { position: absolute; top: 0; right: 0; width: 700px; height: 720px; }
+  .phones .phone { position: absolute; width: 218px; }
+  .phones .phone:nth-child(1) { left: 0; top: 128px; }
+  .phones .phone:nth-child(2) { left: 236px; top: 72px; }
+  .phones .phone:nth-child(3) { left: 472px; top: 156px; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="text">
+    <div class="logo">SPLIT<b>·</b>BILL</div>
+    <h1 id="headline"></h1>
+    <ol id="steps"></ol>
+  </div>
+  <div class="handle">@split_the_bills_bot</div>
+  <div class="phones">
+    <div class="phone"><img data-shot="receipt"></div>
+    <div class="phone"><img data-shot="owner"></div>
+    <div class="phone"><img data-shot="guest"></div>
+  </div>
+</div>
+<script src="copy.js"></script>
+<script>
+  const lang = new URLSearchParams(location.search).get('lang') || 'ru';
+  const copy = COPY[lang];
+  document.documentElement.lang = lang;
+  document.getElementById('headline').textContent = copy.headline;
+  document.getElementById('steps').innerHTML = copy.steps
+    .map((step, index) => `<li><span class="num">${index + 1}</span>${step}</li>`)
+    .join('');
+  document.querySelectorAll('[data-shot]').forEach((img) => { img.src = `shots/${lang}/${img.dataset.shot}.png`; });
+</script>
+</body>
+</html>
